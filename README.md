@@ -26,18 +26,26 @@
 
 ### Skills（Claude Code 工作流）
 
-按写作阶段顺序：
+**三种入口场景**：
+
+| 场景 | Skill | 适用情况 |
+|------|-------|----------|
+| 新项目 | `bootstrap-story` | 从零共创设定和大纲 |
+| 迁移 | `migrate-existing-project` | 有正文+大纲/设定，迁移进来 |
+| 重建 | `reconstruct-story-bible` | 只有正文，反向重建设定 |
+| 总入口 | `import-manuscript` | 判断场景后转交对应流程 |
+
+**写作阶段**：
 
 | 阶段 | Skill | 用途 |
 |------|-------|------|
-| 准备 | `import-manuscript` | 从现有章节导入设定和风格 |
-| 准备 | `plan-chapter` | 写作前确认目标、加载上下文 |
-| 创作 | `writing-style` | 写作风格指南（网文/文学/剧本） |
-| 创作 | `write-scenes` | 完整写作流程：校验 → 上下文 → 写作 → 更新 |
-| 审核 | `suggest-canon` | 从章节正文提取新角色/地点建议 |
-| 审核 | `continuity-check` | 检测故事连续性问题 |
+| 准备 | `plan-chapter` | 写前确认目标、加载上下文 |
+| 创作 | `writing-style` | 风格指南（网文/文学/剧本） |
+| 创作 | `write-scenes` | 完整写作流程 |
+| 审核 | `suggest-canon` | 从正文提取设定变更建议 |
+| 审核 | `continuity-check` | 检测连续性问题 |
 
-共享参考：
+**共享参考**：
 - `reference/author-cli-commands.md` - 命令速查
 
 ### 设计亮点

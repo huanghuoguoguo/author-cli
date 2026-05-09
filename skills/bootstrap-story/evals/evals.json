@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "bootstrap-001",
+      "prompt": "我想写一个新的玄幻小说",
+      "expected_behavior": "询问故事核心要素，共创故事圣经草案",
+      "skills_triggered": ["bootstrap-story"]
+    },
+    {
+      "id": "bootstrap-002",
+      "prompt": "帮我构思一个都市言情小说",
+      "expected_behavior": "确认类型、主角、冲突，创建设定和大纲",
+      "skills_triggered": ["bootstrap-story"]
+    },
+    {
+      "id": "bootstrap-003",
+      "prompt": "从零开始设定一个故事",
+      "expected_behavior": "分阶段共创：核心 → 圣经草案 → canon → 大纲",
+      "skills_triggered": ["bootstrap-story"]
+    }
+  ]
+}

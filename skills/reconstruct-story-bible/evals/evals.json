@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "reconstruct-001",
+      "prompt": "这个小说烂尾了，我想续写，但没有大纲没有设定",
+      "expected_behavior": "第一轮：阅读、抽取、标记不确定项、输出报告；第二轮：确认后写入 canon",
+      "skills_triggered": ["reconstruct-story-bible"]
+    },
+    {
+      "id": "reconstruct-002",
+      "prompt": "想写续集，但原作设定都忘了",
+      "expected_behavior": "从原作正文重建设定，区分事实和推断",
+      "skills_triggered": ["reconstruct-story-bible"]
+    },
+    {
+      "id": "reconstruct-003",
+      "prompt": "从这10章重建一个故事圣经",
+      "expected_behavior": "保守推断，生成重建报告等待确认",
+      "skills_triggered": ["reconstruct-story-bible"]
+    }
+  ]
+}

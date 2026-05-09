@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "migrate-001",
+      "prompt": "我写了10章，大纲在另一个文档里，怎么迁移进来",
+      "expected_behavior": "盘点材料，迁移正文和设定，保留用户已有数据",
+      "skills_triggered": ["migrate-existing-project"]
+    },
+    {
+      "id": "migrate-002",
+      "prompt": "我的角色设定都写在 Excel 里，想导入 author-cli",
+      "expected_behavior": "从 Excel 读取设定，使用 CLI 创建角色",
+      "skills_triggered": ["migrate-existing-project"]
+    },
+    {
+      "id": "migrate-003",
+      "prompt": "把现成的小说迁移进来，我已经有大纲了",
+      "expected_behavior": "尊重已有材料，只迁移不推断",
+      "skills_triggered": ["migrate-existing-project"]
+    }
+  ]
+}

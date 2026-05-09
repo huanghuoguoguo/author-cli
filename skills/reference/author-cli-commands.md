@@ -2,8 +2,23 @@
 
 ## 命令入口
 
-**推荐**：使用 `npm run author -- <command>`（在 author-cli 目录下）
-**全局可用时**：直接用 `author <command>`（需先 `npm link`）
+两种方式：
+
+| 方式 | 命令格式 | 使用场景 |
+|------|----------|----------|
+| 推荐 | `npm run author -- <command>` | 在 author-cli 目录下运行 |
+| 全局 | `author <command>` | 已执行 `npm link`，全局可用 |
+
+**示例**：
+```bash
+# 推荐（在 author-cli 目录）
+npm run author -- validate
+
+# 全局可用时
+author validate
+```
+
+以下表格使用简写 `author`，实际使用时根据环境选择入口方式。
 
 ## 核心命令
 
@@ -26,12 +41,14 @@
 | `author object add --id <id> --name <name> --type <type>` | 创建物品 |
 | `author timeline add --id <id> --title <title> --chapter <ch>` | 创建时间线事件 |
 | `author rules add --id <id> --name <name>` | 创建写作规则 |
+| `author rules update <id> --field <field> --value <value>` | 更新写作规则 |
 
 ## 大纲与状态
 
 | 命令 | 用途 |
 |------|------|
 | `author outline update-chapter <id> --field status --value <value>` | 更新章节状态 |
+| `author outline update-chapter <id> --field summary --value <value>` | 更新章节摘要 |
 | `author outline list` | 列出大纲 |
 
 ## 提案流程

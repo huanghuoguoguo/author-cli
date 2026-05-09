@@ -3,12 +3,15 @@ import { resolve, join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SKILLS = [
+  "bootstrap-story",
+  "migrate-existing-project",
+  "reconstruct-story-bible",
+  "import-manuscript",
   "plan-chapter",
   "write-scenes",
   "suggest-canon",
   "continuity-check",
   "writing-style",
-  "import-manuscript",
 ];
 
 // 获取 author-cli 的目录位置（skills 目录的父目录）

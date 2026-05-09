@@ -2,21 +2,21 @@
   "evals": [
     {
       "id": "import-001",
-      "prompt": "从已有 10 章导入角色和风格",
-      "expected_behavior": "阅读所有章节，提取角色和世界观，使用 CLI 创建设定",
+      "prompt": "我想导入一个小说",
+      "expected_behavior": "询问场景：新项目/迁移/重建，转交对应 skill",
       "skills_triggered": ["import-manuscript"]
     },
     {
       "id": "import-002",
-      "prompt": "我想续写这个烂尾小说",
-      "expected_behavior": "导入设定、大纲、风格样本，准备续写",
+      "prompt": "开始写小说",
+      "expected_behavior": "判断场景，如果是新项目转交 bootstrap-story",
       "skills_triggered": ["import-manuscript"]
     },
     {
       "id": "import-003",
-      "prompt": "提取第一章的写作风格",
-      "expected_behavior": "摘录典型段落，分析叙事特点，保存风格样本",
-      "skills_triggered": ["import-manuscript"]
+      "prompt": "我有个烂尾的小说想续写",
+      "expected_behavior": "判断场景，转交 reconstruct-story-bible",
+      "skills_triggered": ["import-manuscript", "reconstruct-story-bible"]
     }
   ]
 }
