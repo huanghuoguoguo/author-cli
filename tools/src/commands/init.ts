@@ -2,7 +2,14 @@ import { mkdirSync, existsSync, symlinkSync, lstatSync, realpathSync } from "nod
 import { resolve, join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SKILLS = ["write-scenes", "suggest-canon", "continuity-check"];
+const SKILLS = [
+  "write-scenes",
+  "suggest-canon",
+  "continuity-check",
+  "webnovel-style",
+  "traditional-style",
+  "screenplay-style",
+];
 
 // 获取 author-cli 的目录位置（skills 目录的父目录）
 function getAuthorCliRoot(): string {

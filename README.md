@@ -31,6 +31,9 @@
 | `write-scenes` | 完整写作流程：校验 → 上下文 → 写作 → 更新设定 |
 | `suggest-canon` | 从章节正文提取新角色/地点等建议 |
 | `continuity-check` | 检测故事连续性问题 |
+| `webnovel-style` | 网络小说写作风格指南（爽点、节奏、数值） |
+| `traditional-style` | 传统文学写作风格指南（感官、意象、心理） |
+| `screenplay-style` | 剧本写作风格指南（视觉化、对白、场景） |
 
 ### 设计亮点
 
