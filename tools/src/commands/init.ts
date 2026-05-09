@@ -9,6 +9,7 @@ const SKILLS = [
   "webnovel-style",
   "traditional-style",
   "screenplay-style",
+  "import-manuscript",
 ];
 
 // 获取 author-cli 的目录位置（skills 目录的父目录）
