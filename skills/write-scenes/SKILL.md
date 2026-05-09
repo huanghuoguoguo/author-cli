@@ -12,7 +12,7 @@ description: "Use when drafting, continuing, or revising novel manuscript scenes
 ### 1. 校验项目
 
 ```bash
-npm run author -- validate
+author validate
 # 或全局安装后: author validate
 ```
 
@@ -29,7 +29,7 @@ npm run author -- validate
 ### 3. 生成上下文
 
 ```bash
-npm run author -- render context --chapter <chapter-id>
+author render context --chapter <chapter-id>
 ```
 
 ### 4. 阅读上下文
@@ -57,9 +57,9 @@ npm run author -- render context --chapter <chapter-id>
 **必须通过 CLI**，禁止直接编辑 canon YAML：
 
 ```bash
-npm run author -- character add --id <id> --name <name> --role <role>
-npm run author -- location add --id <id> --name <name>
-npm run author -- world add --id <id> --name <name> --category <cat>
+author character add --id <id> --name <name> --role <role>
+author location add --id <id> --name <name>
+author world add --id <id> --name <name> --category <cat>
 ```
 
 ## 后置收尾
@@ -67,13 +67,13 @@ npm run author -- world add --id <id> --name <name> --category <cat>
 ### 7. 更新状态
 
 ```bash
-npm run author -- outline update-chapter <chapter-id> --field status --value drafted
+author outline update-chapter <chapter-id> --field status --value drafted
 ```
 
 ### 8. 再次校验
 
 ```bash
-npm run author -- validate
+author validate
 ```
 
 ## 命令速查
@@ -81,6 +81,6 @@ npm run author -- validate
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
 
 本流程常用命令：
-- `npm run author -- validate`
-- `npm run author -- render context --chapter <id>`
-- `npm run author -- outline update-chapter <id> --field status --value drafted`
+- `author validate`
+- `author render context --chapter <id>`
+- `author outline update-chapter <id> --field status --value drafted`

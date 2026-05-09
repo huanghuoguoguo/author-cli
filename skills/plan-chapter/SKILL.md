@@ -12,13 +12,13 @@ description: "Use when preparing to write a new chapter; reviewing outline beats
 ### 1. 校验项目
 
 ```bash
-npm run author -- validate
+author validate
 ```
 
 ### 2. 查看大纲
 
 ```bash
-npm run author -- outline list
+author outline list
 # 或查看特定章节大纲
 ```
 
@@ -35,7 +35,7 @@ npm run author -- outline list
 ### 4. 生成上下文
 
 ```bash
-npm run author -- render context --chapter <chapter-id>
+author render context --chapter <chapter-id>
 ```
 
 ### 5. 阅读上下文
@@ -75,6 +75,6 @@ npm run author -- render context --chapter <chapter-id>
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
 
 本流程常用：
-- `npm run author -- validate`
-- `npm run author -- outline list`
-- `npm run author -- render context --chapter <id>`
+- `author validate`
+- `author outline list`
+- `author render context --chapter <id>`

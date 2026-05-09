@@ -22,60 +22,54 @@ description: "Use when user has existing manuscript with outline/setting documen
 ### 第二阶段：建立结构
 
 ```bash
-npm run author -- init --work-dir <目标目录>
+author init --work-dir <目标目录>
 ```
 
 确认 `project.yaml` 的 `writingMode` 设置。
 
-### 第三阶段：创建章节条目
+### 第三阶段：导入章节
 
-按用户原大纲创建章节：
+使用 `chapter import` 命令导入已有正文：
 
 ```bash
-npm run author -- chapter add --id ch001 --title "第一章"
-# 不创建正文文件（用户已有），只创建大纲条目
+author chapter import --id ch001 --title "第一章" --from <源文件路径>
+author chapter import --id ch002 --title "第二章" --from <源文件路径>
+# ...
 ```
 
-**注意**：如果正文文件已存在，CLI 需支持跳过正文创建。
-当前可用方案：先创建章节条目，再手动复制正文文件。
+导入命令会：
+1. 创建大纲条目（状态为 `imported`）
+2. 复制正文文件到 `manuscript/v01/`
 
-### 第四阶段：迁移正文
+**可选**：使用 `--summary` 直接添加章节摘要。
 
-将用户正文文件复制到 `manuscript/v01/`：
-
-```
-用户原文件 → manuscript/v01/chXXX.md
-```
-
-文件命名统一为 `ch001.md`, `ch002.md`...
-
-### 第五阶段：迁移设定
+### 第四阶段：迁移设定
 
 从用户已有设定文档创建 canon：
 
 ```bash
-npm run author -- character add --id <id> --name <name> --role <role>
-npm run author -- location add --id <id> --name <name>
-npm run author -- world add --id <id> --name <name> --category <cat>
+author character add --id <id> --name <name> --role <role>
+author location add --id <id> --name <name>
+author world add --id <id> --name <name> --category <cat>
 ```
 
 **只迁移用户明确提供的设定，不推断缺失内容。**
 
-### 第六阶段：填充大纲
+### 第五阶段：填充大纲
 
 将用户大纲内容写入：
 
 ```bash
-npm run author -- outline update-chapter ch001 --field summary --value <情节概要>
-npm run author -- outline update-chapter ch001 --field status --value drafted
+author outline update-chapter ch001 --field summary --value <情节概要>
+# 状态保持 imported（迁移的旧正文），不改 drafted
 ```
 
-### 第七阶段：验证和补缺
+### 第六阶段：验证和补缺
 
 ```bash
-npm run author -- validate
-npm run author -- render context --chapter ch001
-npm run author -- check continuity --chapter ch001
+author validate
+author render context --chapter ch001
+author check continuity --chapter ch001
 ```
 
 对缺失信息（如角色说话风格未设定）标记但不自动填充，让用户决定是否补充。
@@ -89,19 +83,11 @@ npm run author -- check continuity --chapter ch001
 - [ ] validate 通过
 - [ ] 缺失信息已标记，等待用户补充
 
-## CLI 能力缺口
-
-当前 `chapter add` 会创建空正文文件。迁移场景需要：
-
-```bash
-# 建议新增 CLI 能力
-npm run author -- chapter import --id ch001 --title "第一章" --from <源文件>
-# 或
-npm run author -- chapter add --id ch001 --title "第一章" --keep-existing
-```
-
-在此之前，迁移时先创建章节条目，再手动处理正文文件。
-
 ## 命令速查
 
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
+
+本流程常用：
+- `author chapter import --id <id> --title <title> --from <file>`
+- `author character add --id <id> --name <name> --role <role>`
+- `author outline update-chapter <id> --field summary --value <value>`

@@ -1,4 +1,5 @@
 {
+  "skill_name": "import-manuscript",
   "evals": [
     {
       "id": "import-001",
@@ -8,8 +9,8 @@
     },
     {
       "id": "import-002",
-      "prompt": "开始写小说",
-      "expected_behavior": "判断场景，如果是新项目转交 bootstrap-story",
+      "prompt": "我想导入旧稿开始续写",
+      "expected_behavior": "判断场景，询问是否有大纲/设定，转交对应 skill",
       "skills_triggered": ["import-manuscript"]
     },
     {

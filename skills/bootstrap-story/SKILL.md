@@ -36,14 +36,14 @@ description: "Use when starting a new novel from scratch; co-creating story bibl
 确认后使用 CLI 创建：
 
 ```bash
-npm run author -- character add --id protagonist --name <姓名> --role protagonist
-npm run author -- character update protagonist --field personality --value <性格>
-npm run author -- character update protagonist --field motivation --value <动机>
+author character add --id protagonist --name <姓名> --role protagonist
+author character update protagonist --field personality --value <性格>
+author character update protagonist --field motivation --value <动机>
 
-npm run author -- world add --id core-setting --name <设定名> --category background
-npm run author -- location add --id main-loc --name <主地点>
+author world add --id core-setting --name <设定名> --category background
+author location add --id main-loc --name <主地点>
 
-npm run author -- rules add --id writing-style --name "写作风格"
+author rules add --id writing-style --name "写作风格"
 ```
 
 ### 第四阶段：创建大纲
@@ -51,9 +51,9 @@ npm run author -- rules add --id writing-style --name "写作风格"
 按章节规划：
 
 ```bash
-npm run author -- chapter add --id ch001 --title "第一章"
-npm run author -- outline update-chapter ch001 --field summary --value <情节概要>
-npm run author -- outline update-chapter ch001 --field status --value planned
+author chapter add --id ch001 --title "第一章"
+author outline update-chapter ch001 --field summary --value <情节概要>
+author outline update-chapter ch001 --field status --value planned
 
 # 继续创建后续章节...
 ```
@@ -79,6 +79,6 @@ npm run author -- outline update-chapter ch001 --field status --value planned
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
 
 本流程常用：
-- `npm run author -- character add --id <id> --name <name> --role <role>`
-- `npm run author -- chapter add --id <id> --title <title>`
-- `npm run author -- outline update-chapter <id> --field summary --value <value>`
+- `author character add --id <id> --name <name> --role <role>`
+- `author chapter add --id <id> --title <title>`
+- `author outline update-chapter <id> --field summary --value <value>`

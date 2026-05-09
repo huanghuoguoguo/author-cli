@@ -64,30 +64,47 @@ npm link  # 注册全局 author 命令
 
 ## 使用
 
+**重要**：所有命令必须在小说项目根目录（包含 `project.yaml` 的目录）运行。
+
 ```bash
+# 全局安装后（在小说项目根目录）
+author <command>
+
+# 开发模式（在小说项目根目录）
+npx tsx <author-cli-path>/tools/src/cli.ts <command>
+
 # 在工作目录初始化 skills（创建符号链接到 .claude/skills）
 author init --author-cli <author-cli目录>
 
 # 校验项目
-npm run author -- validate
+author validate
 
 # 创建章节
-npm run author -- chapter add --id ch001 --title 第一章
+author chapter add --id ch001 --title 第一章
+
+# 导入已有正文
+author chapter import --id ch001 --title 第一章 --from <源文件>
 
 # 创建角色
-npm run author -- character add --id mc --name 主角 --role protagonist
+author character add --id mc --name 主角 --role protagonist
 
 # 生成写作上下文
-npm run author -- render context --chapter ch001
+author render context --chapter ch001
 
 # 从章节提取建议
-npm run author -- suggest --chapter ch001
+author suggest --chapter ch001
 
 # 连续性检查
-npm run author -- check continuity --chapter ch001
+author check continuity --chapter ch001
 
 # 搜索 canon
-npm run author -- index search --query 主角
+author index search --query 主角
+```
+
+**错误示例**（不要这样做）：
+```bash
+# ❌ 在 author-cli 目录运行会把工具目录当项目目录
+cd author-cli && npm run author -- validate
 ```
 
 ## 项目结构
@@ -149,7 +166,7 @@ author-cli/
 npm test
 ```
 
-24 个集成测试覆盖所有核心命令流程。
+34 个集成测试覆盖所有核心命令流程。
 
 ## License
 

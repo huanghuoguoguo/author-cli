@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { existsSync, mkdirSync, unlinkSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync, readdirSync, writeFileSync, copyFileSync, readFileSync } from "node:fs";
 import { getProjectPaths } from "../utils/paths.js";
 import { readYaml, writeYaml } from "../utils/yaml.js";
 import { PlotSchema, createDefaultChapterOutline } from "../schemas/plot.js";
@@ -59,6 +59,71 @@ export function registerChapterCommand(program: any) {
       console.log(`✓ 章节已创建:`);
       console.log(`  大纲: ${plotPath}`);
       console.log(`  正文: ${chapterFile}`);
+    });
+
+  // chapter import（新增）
+  chapter
+    .command("import")
+    .description("导入已有正文文件（创建大纲条目，复制正文）")
+    .requiredOption("--id <id>", "章节 ID (如 ch001)")
+    .requiredOption("--title <title>", "章节标题")
+    .requiredOption("--from <source>", "源文件路径")
+    .option("--volume <volume>", "所属分卷", "v01")
+    .option("--summary <summary>", "章节摘要")
+    .option("--overwrite", "覆盖已存在的目标文件")
+    .action((opts: { id: string; title: string; from: string; volume: string; summary?: string; overwrite?: boolean }) => {
+      const paths = getProjectPaths();
+
+      // 1. 检查源文件
+      if (!existsSync(opts.from)) {
+        console.error(`源文件不存在: ${opts.from}`);
+        process.exit(1);
+      }
+
+      // 2. 检查大纲中是否已存在
+      const plotPath = join(paths.plotDir, "mainline.yaml");
+      const raw = readYaml(plotPath);
+      if (!raw) {
+        console.error("大纲文件不存在: canon/plot/mainline.yaml");
+        process.exit(1);
+      }
+      const plot = PlotSchema.parse(raw);
+
+      if (plot.chapters.some((ch) => ch.id === opts.id)) {
+        console.error(`章节已存在于大纲中: ${opts.id}`);
+        console.log(`  使用 'outline update-chapter' 更新现有条目`);
+        process.exit(1);
+      }
+
+      // 3. 检查目标文件
+      const volDir = join(paths.manuscriptDir, opts.volume);
+      const chapterFile = join(volDir, `${opts.id}.md`);
+      if (existsSync(chapterFile) && !opts.overwrite) {
+        console.error(`目标文件已存在: ${chapterFile}`);
+        console.log(`  使用 --overwrite 强制覆盖`);
+        process.exit(1);
+      }
+
+      // 4. 先复制正文文件（原子操作：文件成功后再写大纲）
+      mkdirSync(volDir, { recursive: true });
+      try {
+        copyFileSync(opts.from, chapterFile);
+      } catch (e: any) {
+        console.error(`复制文件失败: ${e.message}`);
+        process.exit(1);
+      }
+
+      // 5. 复制成功后，创建大纲条目（状态为 imported）
+      const chapterOutline = createDefaultChapterOutline(opts.id, opts.title);
+      chapterOutline.status = "imported";
+      if (opts.summary) chapterOutline.summary = opts.summary;
+      plot.chapters.push(chapterOutline);
+      writeYaml(plotPath, plot);
+
+      console.log(`✓ 章节已导入:`);
+      console.log(`  大纲: ${plotPath} (状态: imported)`);
+      console.log(`  正文: ${chapterFile}`);
+      console.log(`  来源: ${opts.from}`);
     });
 
   // chapter delete

@@ -13,63 +13,79 @@ author-cli is a novel-writing workspace where structured canon data (characters,
 
 ## Commands
 
+**重要**：所有命令必须在小说项目根目录（包含 `project.yaml` 的目录）运行，不能在 author-cli 工具目录运行。
+
 ```bash
-npm run author -- <command> [args]
+# 全局安装后（在小说项目根目录）
+author <command> [args]
+
+# 开发模式（在小说项目根目录）
+npx tsx <author-cli-path>/tools/src/cli.ts <command> [args]
 
 # Validation
-npm run author -- validate
+author validate
 
 # Chapter lifecycle (creates/deletes both outline entry + manuscript file)
-npm run author -- chapter add --id <id> --title <title> [--volume v01]
-npm run author -- chapter delete <id> [--keep-file]
-npm run author -- chapter list
+author chapter add --id <id> --title <title> [--volume v01]
+author chapter import --id <id> --title <title> --from <file> [--summary <text>]
+author chapter delete <id> [--keep-file]
+author chapter list
 
 # Character
-npm run author -- character add --id <id> --name <name> [--role <role>]
-npm run author -- character update <id> --field <field> --value <value>
-npm run author -- character show <id>
-npm run author -- character list
-npm run author -- character note <id> --chapter <ch> --text <text>
+author character add --id <id> --name <name> [--role <role>]
+author character update <id> --field <field> --value <value>
+author character show <id>
+author character list
+author character note <id> --chapter <ch> --text <text>
 
 # Location / World / Object (same pattern: add, update, show, list, note)
-npm run author -- location add --id <id> --name <name>
-npm run author -- world add --id <id> --name <name> [--category <cat>]
-npm run author -- object add --id <id> --name <name> [--type <type>]
+author location add --id <id> --name <name>
+author world add --id <id> --name <name> [--category <cat>]
+author object add --id <id> --name <name> [--type <type>]
 
 # Timeline
-npm run author -- timeline add --id <id> --title <title> [--chapter <ch>]
-npm run author -- timeline update <id> --field <field> --value <value>
-npm run author -- timeline list
+author timeline add --id <id> --title <title> [--chapter <ch>]
+author timeline update <id> --field <field> --value <value>
+author timeline list
 
 # Proposal workflow (extract suggestions from chapter, then apply or reject)
-npm run author -- suggest --chapter <id>
-npm run author -- proposal list [--status <status>]
-npm run author -- proposal show <id>
-npm run author -- proposal apply <id>
-npm run author -- proposal reject <id>
+author suggest --chapter <id>
+author proposal list [--status <status>]
+author proposal show <id>
+author proposal apply <id>
+author proposal reject <id>
 
 # Continuity check (detect story inconsistencies)
-npm run author -- check continuity --chapter <id> [--severity <level>]
-npm run author -- check global [--severity <level>]
+author check continuity --chapter <id> [--severity <level>]
+author check global [--severity <level>]
 
 # RAG index (search across canon and chapters)
-npm run author -- index rebuild
-npm run author -- index status
-npm run author -- index search --query <query> [--limit <n>]
+author index rebuild
+author index status
+author index search --query <query> [--limit <n>]
 
-# Outline (legacy, prefer `chapter` for add/delete)
-npm run author -- outline add-chapter --id <id> --title <title>
-npm run author -- outline update-chapter <id> --field <field> --value <value>
-npm run author -- outline list
+# Outline (for updating outline fields; prefer `chapter` for add/delete)
+author outline add-chapter --id <id> --title <title>
+author outline update-chapter <id> --field <field> --value <value>
+author outline foreshadowing-add --id <id> --setup <ch> [--payoff <ch>] [--note <text>]
+author outline foreshadowing-update <id> --field <field> --value <value>
+author outline foreshadowing-list [--status <status>]
+author outline list
 
 # Render read-only outputs
-npm run author -- render context --chapter <id>
-npm run author -- render canon
-npm run author -- render character <id>
+author render context --chapter <id>
+author render canon
+author render character <id>
 
-# Tests
+# Tests (在 author-cli 目录运行)
 npm test
 npm run test:watch
+```
+
+**错误示例**（不要这样做）：
+```bash
+# ❌ 在 author-cli 目录运行会把工具目录当项目目录
+cd author-cli && npm run author -- validate
 ```
 
 ## Architecture

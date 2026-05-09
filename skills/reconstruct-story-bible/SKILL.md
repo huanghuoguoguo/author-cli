@@ -95,25 +95,34 @@ description: "Use when user has existing manuscript without outline or setting; 
 只写入确认过的内容：
 
 ```bash
-npm run author -- character add --id protagonist --name <姓名> --role protagonist
-npm run author -- character update protagonist --field personality --value <性格>
-npm run author -- character update protagonist --field speechStyle --value <说话风格>
+author character add --id protagonist --name <姓名> --role protagonist
+author character update protagonist --field personality --value <性格>
+author character update protagonist --field speechStyle --value <说话风格>
 
-npm run author -- location add --id <id> --name <名称>
-npm run author -- world add --id <id> --name <名称> --category background
+author location add --id <id> --name <名称>
+author world add --id <id> --name <名称> --category background
 ```
 
 **不确定项保持空白或标记，不自动填充。**
 
 #### 9. 写入大纲
 
+对于已有正文，使用 `chapter import` 导入：
+
 ```bash
-npm run author -- chapter add --id ch001 --title "第一章"
-npm run author -- outline update-chapter ch001 --field summary --value <摘要>
-npm run author -- outline update-chapter ch001 --field status --value existing
+author chapter import --id ch001 --title "第一章" --from manuscript/v01/ch001.md --summary <摘要>
+# 导入命令自动设置 status 为 imported
 ```
 
-对于已有章节，状态标记为 `existing`（区别于 `drafted`）。
+如果正文已放在 `manuscript/v01/`，使用 `outline add-chapter` 只建大纲：
+
+```bash
+author outline add-chapter --id ch001 --title "第一章"
+author outline update-chapter ch001 --field summary --value <摘要>
+author outline update-chapter ch001 --field status --value imported
+```
+
+**不要用 `chapter add`**，它会创建空正文文件，与已有正文冲突。
 
 #### 10. 写入伏笔和未解决问题
 
@@ -122,11 +131,11 @@ npm run author -- outline update-chapter ch001 --field status --value existing
 #### 11. 写入风格规则
 
 ```bash
-npm run author -- rules add --id writing-style --name "写作风格"
-npm run author -- rules update writing-style --field description --value <风格描述>
+author rules add --id writing-style --name "写作风格"
+author rules update writing-style --field voice --value <风格描述>
 ```
 
-如果 CLI 不支持 rules 命令，将风格保存到 `generated/style-sample.md`。
+风格描述写入 `voice` 字段。也可用 `rules` 数组添加具体规则。
 
 ---
 

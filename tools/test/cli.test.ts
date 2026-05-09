@@ -196,6 +196,21 @@ revisionRules: []
       expect(output).toContain("第一章");
     });
 
+    it("should import chapter from existing file", () => {
+      // 创建源文件
+      const sourceFile = join(TEST_DIR, "source-chapter.md");
+      writeFileSync(sourceFile, "# 源章节\n\n这是从外部导入的正文内容。\n", "utf-8");
+
+      const output = runAuthor(`chapter import --id ch-import --title "导入章节" --from "${sourceFile}" --summary "导入测试"`);
+      expect(output).toContain("✓ 章节已导入");
+      expect(output).toContain("状态: imported");
+      expect(existsSync(join(TEST_DIR, "manuscript/v01/ch-import.md"))).toBe(true);
+
+      // 验证内容被复制
+      const content = readFileSync(join(TEST_DIR, "manuscript/v01/ch-import.md"), "utf-8");
+      expect(content).toContain("导入的正文内容");
+    });
+
     it("should delete chapter", () => {
       runAuthor("chapter add --id ch-temp --title 临时章节");
       runAuthor("chapter delete ch-temp");
@@ -252,6 +267,56 @@ revisionRules: []
       runAuthor("rules add --id test-rule --name 测试规则 --priority high");
       const output = runAuthor("rules list");
       expect(output).toContain("test-rule");
+    });
+  });
+
+  describe("outline", () => {
+    it("should add chapter to outline", () => {
+      const output = runAuthor("outline add-chapter --id ch-outline --title 大纲章节");
+      expect(output).toContain("✓ 章节已添加");
+    });
+
+    it("should update chapter summary", () => {
+      const output = runAuthor("outline update-chapter ch-outline --field summary --value 测试摘要");
+      expect(output).toContain("✓ 章节 ch-outline 已更新");
+    });
+
+    it("should update chapter status to imported", () => {
+      const output = runAuthor("outline update-chapter ch-outline --field status --value imported");
+      expect(output).toContain("✓ 章节 ch-outline 已更新");
+    });
+
+    it("should reject invalid status value", () => {
+      expect(() => {
+        runAuthor("outline update-chapter ch-outline --field status --value invalid-status");
+      }).toThrow();
+    });
+
+    it("should list outline", () => {
+      const output = runAuthor("outline list");
+      expect(output).toContain("ch-outline");
+      expect(output).toContain("大纲章节");
+    });
+
+    it("should add foreshadowing", () => {
+      const output = runAuthor("outline foreshadowing-add --id foreshadow-001 --setup ch001 --note 测试伏笔");
+      expect(output).toContain("✓ 伏笔已添加");
+    });
+
+    it("should list foreshadowing", () => {
+      const output = runAuthor("outline foreshadowing-list");
+      expect(output).toContain("foreshadow-001");
+    });
+
+    it("should update foreshadowing", () => {
+      const output = runAuthor("outline foreshadowing-update foreshadow-001 --field status --value planted");
+      expect(output).toContain("✓ 伏笔 foreshadow-001 已更新");
+    });
+
+    it("should reject invalid foreshadowing status", () => {
+      expect(() => {
+        runAuthor("outline foreshadowing-update foreshadow-001 --field status --value bad-status");
+      }).toThrow();
     });
   });
 });

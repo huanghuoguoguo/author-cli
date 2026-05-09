@@ -12,7 +12,7 @@ description: "Use when extracting canon suggestions from chapter prose; managing
 ### 1. 生成建议
 
 ```bash
-npm run author -- suggest --chapter <chapter-id>
+author suggest --chapter <chapter-id>
 ```
 
 分析章节正文，提取：
@@ -25,8 +25,8 @@ npm run author -- suggest --chapter <chapter-id>
 ### 2. 审核
 
 ```bash
-npm run author -- proposal list
-npm run author -- proposal show <proposal-id>
+author proposal list
+author proposal show <proposal-id>
 ```
 
 **重要**：建议人工审核，中文对话识别可能误判。
@@ -34,8 +34,8 @@ npm run author -- proposal show <proposal-id>
 ### 3. 执行
 
 ```bash
-npm run author -- proposal apply <proposal-id>   # 写入 canon
-npm run author -- proposal reject <proposal-id>  # 删除提案
+author proposal apply <proposal-id>   # 写入 canon
+author proposal reject <proposal-id>  # 删除提案
 ```
 
 apply 后自动触发 schema 校验。
@@ -45,6 +45,6 @@ apply 后自动触发 schema 校验。
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
 
 本流程常用：
-- `npm run author -- suggest --chapter <id>`
-- `npm run author -- proposal list`
-- `npm run author -- proposal apply <id>`
+- `author suggest --chapter <id>`
+- `author proposal list`
+- `author proposal apply <id>`

@@ -1,6 +1,6 @@
 ---
 name: import-manuscript
-description: "Use when importing existing manuscript into author-cli; entry point for bootstrap, migrate, or reconstruct scenarios. Triggers on '导入', '迁移', '续写', '开始写小说'. First determines which scenario applies, then delegates to appropriate skill."
+description: "Use when importing, migrating, or preparing an existing manuscript for author-cli; deciding whether the project is new, migrated from existing outline/canon, or reconstructed from prose only. Do not use for ordinary chapter drafting once the project is already initialized. Triggers on '导入', '迁移', '烂尾小说续写', '没有大纲怎么办', '从正文提取设定', '导入旧稿'."
 ---
 
 # Import Manuscript

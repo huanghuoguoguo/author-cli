@@ -3,7 +3,8 @@ import { z } from "zod";
 export const ChapterOutlineSchema = z.object({
   id: z.string(),
   title: z.string().default(""),
-  status: z.enum(["planned", "outlined", "drafted", "revised", "final"]).default("planned"),
+  status: z.enum(["planned", "outlined", "drafted", "revised", "final", "imported"]).default("planned"),
+  summary: z.string().default(""),  // 章节摘要（迁移/重建场景需要）
   purpose: z.string().default(""),
   beats: z.array(z.string()).default([]),
   involvedCharacters: z.array(z.string()).default([]),

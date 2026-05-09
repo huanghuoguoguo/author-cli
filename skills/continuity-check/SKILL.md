@@ -10,7 +10,7 @@ description: "Use when detecting story continuity issues; checking character sta
 ## 章节级检查
 
 ```bash
-npm run author -- check continuity --chapter <chapter-id> [--severity <level>]
+author check continuity --chapter <chapter-id> [--severity <level>]
 ```
 
 检查项：
@@ -21,7 +21,7 @@ npm run author -- check continuity --chapter <chapter-id> [--severity <level>]
 ## 全局检查
 
 ```bash
-npm run author -- check global [--severity <level>]
+author check global [--severity <level>]
 ```
 
 检查项：
@@ -40,5 +40,5 @@ npm run author -- check global [--severity <level>]
 详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
 
 本流程常用：
-- `npm run author -- check continuity --chapter <id>`
-- `npm run author -- check global`
+- `author check continuity --chapter <id>`
+- `author check global`

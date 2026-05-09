@@ -1,4 +1,5 @@
 {
+  "skill_name": "reconstruct-story-bible",
   "evals": [
     {
       "id": "reconstruct-001",
