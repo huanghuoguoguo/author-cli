@@ -1,6 +1,6 @@
 node_modules/
 dist/
-generated/
+/generated/  # Only ignore root level generated directory
 *.tsbuildinfo
 .env
 .env.local

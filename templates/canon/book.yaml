@@ -1,0 +1,12 @@
+# 作品信息
+
+title: 作品标题
+genre: 类型（如：现实题材、玄幻、悬疑）
+author: 作者
+status: planning | ongoing | completed | paused
+synopsis: |
+  作品简介/故事梗概
+
+word_count: 0  # 当前字数
+chapters: 0    # 章节数量
+start_date: YYYY-MM-DD  # 开始创作日期

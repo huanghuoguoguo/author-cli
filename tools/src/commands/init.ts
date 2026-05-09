@@ -1,4 +1,4 @@
-import { mkdirSync, existsSync, symlinkSync, lstatSync, realpathSync } from "node:fs";
+import { mkdirSync, existsSync, symlinkSync, lstatSync, realpathSync, cpSync, writeFileSync, readFileSync } from "node:fs";
 import { resolve, join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,14 +31,11 @@ function createSymlink(target: string, linkPath: string): void {
         return;
       }
     }
-    // 如果已存在但不是正确的符号链接，需要先删除
-    // 但这里我们选择报错让用户处理
     console.log(`  ⚠ 已存在但不是符号链接: ${basename(linkPath)}`);
     return;
   }
 
   try {
-    // Windows 目录符号链接需要 junction 类型（不需要管理员权限）
     if (process.platform === "win32") {
       symlinkSync(target, linkPath, "junction");
     } else {
@@ -55,13 +52,24 @@ function createSymlink(target: string, linkPath: string): void {
   }
 }
 
+// 复制模板文件，如果目标不存在则创建
+function copyTemplateFile(src: string, dest: string): void {
+  if (!existsSync(dest)) {
+    writeFileSync(dest, readFileSync(src));
+    console.log(`  ✓ 创建: ${basename(dest)}`);
+  } else {
+    console.log(`  ○ 已存在: ${basename(dest)}`);
+  }
+}
+
 export function registerInitCommand(program: any) {
   program
     .command("init")
-    .description("在指定工作目录初始化 Claude Code skills（创建符号链接）")
+    .description("在指定工作目录初始化小说写作项目结构")
     .option("--work-dir <path>", "小说工作目录路径（默认当前目录）")
     .option("--author-cli <path>", "author-cli 目录路径（默认自动检测）")
-    .action((options: { workDir?: string; authorCli?: string }) => {
+    .option("--skip-templates", "跳过模板文件创建（只创建 skills 符号链接）")
+    .action((options: { workDir?: string; authorCli?: string; skipTemplates?: boolean }) => {
       // 确定工作目录
       let workDir = options.workDir ? resolve(options.workDir) : process.cwd();
 
@@ -79,23 +87,101 @@ export function registerInitCommand(program: any) {
         process.exit(1);
       }
 
+      const templatesDir = join(authorCliRoot, "templates");
       const skillsDir = join(workDir, ".claude", "skills");
       const authorSkillsDir = join(authorCliRoot, "skills");
 
       console.log(`工作目录: ${workDir}`);
       console.log(`author-cli: ${authorCliRoot}`);
-      console.log(`\n创建 .claude/skills 目录...`);
+
+      // ==================== 创建目录结构 ====================
+      if (!options.skipTemplates) {
+        console.log(`\n创建项目目录结构...`);
+
+        // 创建 canon 目录（带 README）
+        const canonDirs = ["characters", "locations", "world", "objects", "plot", "rules"];
+        for (const dir of canonDirs) {
+          const targetDir = join(workDir, "canon", dir);
+          if (!existsSync(targetDir)) {
+            mkdirSync(targetDir, { recursive: true });
+            console.log(`  ✓ 创建目录: canon/${dir}/`);
+          } else {
+            console.log(`  ○ 已存在: canon/${dir}/`);
+          }
+          // 复制 README
+          copyTemplateFile(
+            join(templatesDir, "canon", dir, "README.md"),
+            join(targetDir, "README.md")
+          );
+        }
+
+        // 创建 manuscript/v01 目录
+        const manuscriptDir = join(workDir, "manuscript", "v01");
+        if (!existsSync(manuscriptDir)) {
+          mkdirSync(manuscriptDir, { recursive: true });
+          console.log(`  ✓ 创建目录: manuscript/v01/`);
+        } else {
+          console.log(`  ○ 已存在: manuscript/v01/`);
+        }
+        copyTemplateFile(
+          join(templatesDir, "manuscript", "v01", "README.md"),
+          join(manuscriptDir, "README.md")
+        );
+
+        // 创建 proposals 目录
+        const proposalsDir = join(workDir, "proposals");
+        if (!existsSync(proposalsDir)) {
+          mkdirSync(proposalsDir, { recursive: true });
+          console.log(`  ✓ 创建目录: proposals/`);
+        } else {
+          console.log(`  ○ 已存在: proposals/`);
+        }
+        copyTemplateFile(
+          join(templatesDir, "proposals", "README.md"),
+          join(proposalsDir, "README.md")
+        );
+
+        // 创建 generated 目录
+        const generatedDir = join(workDir, "generated");
+        if (!existsSync(generatedDir)) {
+          mkdirSync(generatedDir, { recursive: true });
+          console.log(`  ✓ 创建目录: generated/`);
+        } else {
+          console.log(`  ○ 已存在: generated/`);
+        }
+        copyTemplateFile(
+          join(templatesDir, "generated", "README.md"),
+          join(generatedDir, "README.md")
+        );
+
+        // 创建配置文件
+        console.log(`\n创建配置文件...`);
+        copyTemplateFile(
+          join(templatesDir, "project.yaml"),
+          join(workDir, "project.yaml")
+        );
+        copyTemplateFile(
+          join(templatesDir, "canon", "book.yaml"),
+          join(workDir, "canon", "book.yaml")
+        );
+        copyTemplateFile(
+          join(templatesDir, "canon", "timeline.yaml"),
+          join(workDir, "canon", "timeline.yaml")
+        );
+      }
+
+      // ==================== 创建 skills 符号链接 ====================
+      console.log(`\n创建 .claude/skills 符号链接...`);
 
       // 创建 .claude/skills 目录
       if (!existsSync(skillsDir)) {
         mkdirSync(skillsDir, { recursive: true });
-        console.log(`  ✓ 创建目录: ${skillsDir}`);
+        console.log(`  ✓ 创建目录: .claude/skills/`);
       } else {
-        console.log(`  ✓ 目录已存在: ${skillsDir}`);
+        console.log(`  ○ 已存在: .claude/skills/`);
       }
 
       // 创建符号链接
-      console.log(`\n创建 skills 符号链接...`);
       for (const skill of SKILLS) {
         const target = join(authorSkillsDir, skill);
         const linkPath = join(skillsDir, skill);
@@ -108,9 +194,31 @@ export function registerInitCommand(program: any) {
         createSymlink(target, linkPath);
       }
 
-      console.log(`\n完成! 现可以在 Claude Code 中使用 /write-scenes 等命令。`);
-      console.log(`提示: 如果符号链接创建失败，请尝试:`);
-      console.log(`  - Windows: 以管理员身份运行，或启用开发者模式`);
-      console.log(`  - 或使用 --author-cli 参数指定 author-cli 目录`);
+      // ==================== 完成提示 ====================
+      console.log(`\n========================================`);
+      console.log(`✓ 项目初始化完成!`);
+      console.log(`========================================`);
+      console.log(`\n项目结构:`);
+      console.log(`  ${workDir}/`);
+      console.log(`  ├── canon/              # 设定数据`);
+      console.log(`  │   ├── book.yaml       # 作品信息`);
+      console.log(`  │   ├── timeline.yaml   # 时间线`);
+      console.log(`  │   ├── characters/     # 角色`);
+      console.log(`  │   ├── locations/      # 地点`);
+      console.log(`  │   ├── world/          # 世界观`);
+      console.log(`  │   ├── plot/           # 大纲`);
+      console.log(`  │   └── rules/          # 写作规则`);
+      console.log(`  ├── manuscript/v01/     # 章节正文`);
+      console.log(`  ├── proposals/          # AI 建议`);
+      console.log(`  ├── generated/          # 生成输出`);
+      console.log(`  ├── project.yaml        # 项目配置`);
+      console.log(`  └── .claude/skills/     # Claude Code skills`);
+      console.log(`\n下一步:`);
+      console.log(`  1. 编辑 canon/book.yaml 设置作品信息`);
+      console.log(`  2. 使用 /import-manuscript 从现有章节导入设定`);
+      console.log(`  3. 或手动创建角色: author character add --id <id> --name <名称>`);
+      console.log(`  4. 创建章节: author chapter add --id ch001 --title "第一章"`);
+      console.log(`  5. 开始写作: /write-scenes`);
+      console.log(`\n提示: 使用 --skip-templates 可跳过模板创建`);
     });
 }

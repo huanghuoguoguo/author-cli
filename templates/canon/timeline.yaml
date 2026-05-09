@@ -1,0 +1,20 @@
+# 时间线事件
+
+# 记录故事中的关键事件和时间节点
+# 格式：每个事件一个条目
+
+events:
+  - id: event-001
+    title: 事件标题
+    date: YYYY-MM-DD  # 事件发生日期（可选）
+    chapter: ch01     # 所在章节
+    description: 事件描述
+    order: 1          # 事件顺序（用于排序）
+
+  - id: event-002
+    title: ...
+    ...
+
+# 注意：
+# - order 用于排序，相同 order 会按 id 排序
+# - chapter 用于关联章节，方便查找
