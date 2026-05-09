@@ -1,0 +1,22 @@
+id: "chen-shouzheng"
+name: "陈守正"
+aliases: []
+role: "mentioned"
+status: "active"
+firstAppearance: ""
+age: ""
+gender: ""
+appearance: ""
+personality: []
+background: ""
+motivation: ""
+skills: []
+speechStyle: ""
+relationships: []
+arc:
+  currentState: ""
+  unresolved: []
+  completed: []
+notes:
+  - chapter: "ch002"
+    text: "在本章出场"

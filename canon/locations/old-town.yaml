@@ -1,0 +1,13 @@
+id: "old-town"
+name: "老城"
+type: "city"
+status: "active"
+description: ""
+visual: ""
+audio: ""
+smellTouch: ""
+mood: ""
+rules: []
+connectedCharacters: []
+usedInChapters: []
+notes: []

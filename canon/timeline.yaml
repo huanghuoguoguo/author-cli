@@ -1,0 +1,10 @@
+events:
+  - id: "evt-001"
+    title: "梁宏远收到匿名信"
+    chapter: "ch001"
+    date: ""
+    order: 1
+    description: ""
+    characters: []
+    locations: []
+    consequences: []

@@ -1,0 +1,13 @@
+id: "proposal-20260508-ch002"
+sourceChapter: "ch002"
+status: "rejected"
+createdAt: "2026-05-08T14:39:44.570Z"
+suggestions:
+  - action: "create"
+    entityType: "character"
+    entityId: "味深长地"
+    value:
+      name: "味深长地"
+      role: "mentioned"
+    reason: "正文中出现了可能是新角色的说话者: \"味深长地\""
+    confidence: 0.6

@@ -1,0 +1,23 @@
+{
+  "name": "author-cli",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "小说写作工作区 CLI 工具",
+  "scripts": {
+    "author": "tsx tools/src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "validate": "tsx tools/src/cli.ts validate"
+  },
+  "dependencies": {
+    "commander": "^13.1.0",
+    "yaml": "^2.7.1",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}

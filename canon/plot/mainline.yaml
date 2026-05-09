@@ -1,0 +1,36 @@
+id: "mainline"
+name: "主线"
+type: "mainline"
+status: "active"
+mainConflict: ""
+currentArc: ""
+chapters:
+  - id: "ch001"
+    title: "第一章"
+    status: "planned"
+    purpose: ""
+    beats: []
+    involvedCharacters: []
+    involvedLocations: []
+    unresolvedAfter: []
+  - id: "ch002"
+    title: "第二章"
+    status: "planned"
+    purpose: "引入新角色"
+    beats: []
+    involvedCharacters:
+      - "liang-hongyuan"
+      - "zhao-qing"
+    involvedLocations: []
+    unresolvedAfter: []
+foreshadowing:
+  - id: "clue-anonymous-letter"
+    setupChapter: "ch001"
+    payoffChapter: null
+    status: "open"
+    note: "匿名信的来源和发送者身份"
+  - id: "clue-chen-shouzheng"
+    setupChapter: "ch002"
+    payoffChapter: "ch001"
+    status: "planted"
+    note: "陈守正的身份和二十年前的案子"

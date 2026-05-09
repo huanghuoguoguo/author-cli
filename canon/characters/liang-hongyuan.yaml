@@ -1,0 +1,24 @@
+id: "liang-hongyuan"
+name: "梁宏远"
+aliases: []
+role: "protagonist"
+status: "active"
+firstAppearance: ""
+age: ""
+gender: ""
+appearance: ""
+personality: []
+background: ""
+motivation: ""
+skills: []
+speechStyle: ""
+relationships: []
+arc:
+  currentState: ""
+  unresolved: []
+  completed: []
+notes:
+  - chapter: "ch001"
+    text: "故事开始时的状态"
+  - chapter: "ch002"
+    text: "在本章出场"
