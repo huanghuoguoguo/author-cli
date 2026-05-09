@@ -8,6 +8,7 @@
 
 | 命令组 | 功能 |
 |--------|------|
+| `init` | 在工作目录初始化 Claude Code skills（创建符号链接） |
 | `validate` | 校验所有 canon YAML 文件的 schema 和跨引用 |
 | `character` | 角色 CRUD + 章节备注 |
 | `location` | 地点 CRUD |
@@ -42,11 +43,15 @@
 
 ```bash
 npm install
+npm link  # 注册全局 author 命令
 ```
 
 ## 使用
 
 ```bash
+# 在工作目录初始化 skills（创建符号链接到 .claude/skills）
+author init --author-cli <author-cli目录>
+
 # 校验项目
 npm run author -- validate
 

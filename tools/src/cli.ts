@@ -14,6 +14,7 @@ import { registerSuggestCommand } from "./commands/suggest.js";
 import { registerProposalCommand } from "./commands/proposal.js";
 import { registerCheckCommand } from "./commands/check.js";
 import { registerIndexCommand } from "./commands/index.js";
+import { registerInitCommand } from "./commands/init.js";
 
 const program = new Command();
 
@@ -38,5 +39,6 @@ registerSuggestCommand(program);
 registerProposalCommand(program);
 registerCheckCommand(program);
 registerIndexCommand(program);
+registerInitCommand(program);
 
 program.parse();

@@ -10,7 +10,7 @@ description: "检查故事连续性问题（角色状态、地点引用、伏笔
 ## 章节级检查
 
 ```bash
-npm run author -- check continuity --chapter <chapter-id> [--severity <level>]
+author check continuity --chapter <chapter-id> [--severity <level>]
 ```
 
 **检查项**：
@@ -27,7 +27,7 @@ npm run author -- check continuity --chapter <chapter-id> [--severity <level>]
 ## 全局检查
 
 ```bash
-npm run author -- check global [--severity <level>]
+author check global [--severity <level>]
 ```
 
 **检查项**：
@@ -43,7 +43,7 @@ npm run author -- check global [--severity <level>]
 
   ✗ [error] character/unknown-char
     大纲引用的角色不存在: unknown-char
-    建议: 使用 npm run author -- character add --id unknown-char 创建角色
+    建议: 使用 author character add --id unknown-char 创建角色
 
   ⚠ [warning] character/dead-char
     角色 已死角色 (dead-char) 状态为 dead，但仍在大纲中标记为本章出场
@@ -56,6 +56,6 @@ npm run author -- check global [--severity <level>]
 
 | 操作 | 命令 |
 |------|------|
-| 检查章节 | `npm run author -- check continuity --chapter <id>` |
-| 检查全局 | `npm run author -- check global` |
+| 检查章节 | `author check continuity --chapter <id>` |
+| 检查全局 | `author check global` |
 | 指定级别 | `--severity error/warning/info` |

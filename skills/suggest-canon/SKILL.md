@@ -12,7 +12,7 @@ description: "从章节正文提取 canon 变更建议并管理提案。TRIGGER 
 ### 1. 生成建议
 
 ```bash
-npm run author -- suggest --chapter <chapter-id>
+author suggest --chapter <chapter-id>
 ```
 
 此命令会分析章节正文，提取：
@@ -25,18 +25,18 @@ npm run author -- suggest --chapter <chapter-id>
 ### 2. 查看提案
 
 ```bash
-npm run author -- proposal list
-npm run author -- proposal show <proposal-id>
+author proposal list
+author proposal show <proposal-id>
 ```
 
 ### 3. 应用或拒绝
 
 ```bash
 # 应用提案（所有建议写入 canon）
-npm run author -- proposal apply <proposal-id>
+author proposal apply <proposal-id>
 
 # 拒绝提案
-npm run author -- proposal reject <proposal-id>
+author proposal reject <proposal-id>
 ```
 
 ## 注意事项
@@ -49,8 +49,8 @@ npm run author -- proposal reject <proposal-id>
 
 | 操作 | 命令 |
 |------|------|
-| 生成建议 | `npm run author -- suggest --chapter <id>` |
-| 列出提案 | `npm run author -- proposal list` |
-| 查看提案 | `npm run author -- proposal show <id>` |
-| 应用提案 | `npm run author -- proposal apply <id>` |
-| 拒绝提案 | `npm run author -- proposal reject <id>` |
+| 生成建议 | `author suggest --chapter <id>` |
+| 列出提案 | `author proposal list` |
+| 查看提案 | `author proposal show <id>` |
+| 应用提案 | `author proposal apply <id>` |
+| 拒绝提案 | `author proposal reject <id>` |

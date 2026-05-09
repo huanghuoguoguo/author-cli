@@ -12,7 +12,7 @@ description: "写小说场景的完整流程。TRIGGER when: 用户说'写章节
 ### 1. 校验项目
 
 ```bash
-npm run author -- validate
+author validate
 ```
 
 如果有错误，先修复再继续。
@@ -20,7 +20,7 @@ npm run author -- validate
 ### 2. 生成上下文
 
 ```bash
-npm run author -- render context --chapter <chapter-id>
+author render context --chapter <chapter-id>
 ```
 
 ### 3. 阅读上下文
@@ -56,23 +56,23 @@ npm run author -- render context --chapter <chapter-id>
 
 ```bash
 # 新角色
-npm run author -- character add --id <id> --name <name> --role <role>
-npm run author -- character note <id> --chapter <chapter-id> --text <note>
+author character add --id <id> --name <name> --role <role>
+author character note <id> --chapter <chapter-id> --text <note>
 
 # 新地点
-npm run author -- location add --id <id> --name <name>
-npm run author -- location note <id> --chapter <chapter-id> --text <note>
+author location add --id <id> --name <name>
+author location note <id> --chapter <chapter-id> --text <note>
 
 # 新世界观设定
-npm run author -- world add --id <id> --name <name> --category <cat>
-npm run author -- world note <id> --chapter <chapter-id> --text <note>
+author world add --id <id> --name <name> --category <cat>
+author world note <id> --chapter <chapter-id> --text <note>
 
 # 新物品/道具
-npm run author -- object add --id <id> --name <name> --type <type>
-npm run author -- object note <id> --chapter <chapter-id> --text <note>
+author object add --id <id> --name <name> --type <type>
+author object note <id> --chapter <chapter-id> --text <note>
 
 # 时间线事件
-npm run author -- timeline add --id <id> --title <title> --chapter <chapter-id>
+author timeline add --id <id> --title <title> --chapter <chapter-id>
 ```
 
 **不要直接编辑 canon YAML 文件。**
@@ -82,13 +82,13 @@ npm run author -- timeline add --id <id> --title <title> --chapter <chapter-id>
 ### 7. 更新大纲状态
 
 ```bash
-npm run author -- outline update-chapter <chapter-id> --field status --value drafted
+author outline update-chapter <chapter-id> --field status --value drafted
 ```
 
 ### 8. 再次校验
 
 ```bash
-npm run author -- validate
+author validate
 ```
 
 ### 9. 重新渲染（可选）
@@ -96,18 +96,18 @@ npm run author -- validate
 如果修改了设定，重新生成 context：
 
 ```bash
-npm run author -- render context --chapter <chapter-id>
+author render context --chapter <chapter-id>
 ```
 
 ## 命令速查
 
 | 操作 | 命令 |
 |------|------|
-| 校验项目 | `npm run author -- validate` |
-| 生成 context | `npm run author -- render context --chapter <id>` |
-| 创建章节 | `npm run author -- chapter add --id <id> --title <title>` |
-| 删除章节 | `npm run author -- chapter delete <id>` |
-| 添加角色 | `npm run author -- character add --id <id> --name <name>` |
-| 角色备注 | `npm run author -- character note <id> --chapter <ch> --text <text>` |
-| 添加地点 | `npm run author -- location add --id <id> --name <name>` |
-| 添加事件 | `npm run author -- timeline add --id <id> --title <title>` |
+| 校验项目 | `author validate` |
+| 生成 context | `author render context --chapter <id>` |
+| 创建章节 | `author chapter add --id <id> --title <title>` |
+| 删除章节 | `author chapter delete <id>` |
+| 添加角色 | `author character add --id <id> --name <name>` |
+| 角色备注 | `author character note <id> --chapter <ch> --text <text>` |
+| 添加地点 | `author location add --id <id> --name <name>` |
+| 添加事件 | `author timeline add --id <id> --title <title>` |

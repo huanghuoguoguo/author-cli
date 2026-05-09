@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "description": "小说写作工作区 CLI 工具",
+  "bin": {
+    "author": "./bin/author.js"
+  },
   "scripts": {
     "author": "tsx tools/src/cli.ts",
     "test": "vitest run",
