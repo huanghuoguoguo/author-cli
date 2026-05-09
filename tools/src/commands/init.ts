@@ -58,14 +58,28 @@ function createSymlink(target: string, linkPath: string): void {
 export function registerInitCommand(program: any) {
   program
     .command("init")
-    .description("在当前工作目录初始化 Claude Code skills（创建符号链接）")
+    .description("在指定工作目录初始化 Claude Code skills（创建符号链接）")
+    .option("--work-dir <path>", "小说工作目录路径（默认当前目录）")
     .option("--author-cli <path>", "author-cli 目录路径（默认自动检测）")
-    .action((options: { authorCli?: string }) => {
-      const workDir = process.cwd();
-      const skillsDir = join(workDir, ".claude", "skills");
+    .action((options: { workDir?: string; authorCli?: string }) => {
+      // 确定工作目录
+      let workDir = options.workDir ? resolve(options.workDir) : process.cwd();
 
-      // 定位 author-cli 的 skills 目录
+      // 定位 author-cli 的目录
       const authorCliRoot = options.authorCli ?? getAuthorCliRoot();
+
+      // 检查：如果工作目录是 author-cli 本身，给出警告
+      if (resolve(workDir) === resolve(authorCliRoot)) {
+        console.log(`⚠ 警告: 工作目录 (${workDir}) 与 author-cli 目录相同。`);
+        console.log(`  author-cli 是工具目录，不应作为小说工作目录。`);
+        console.log(`  请指定正确的小说工作目录:`);
+        console.log(`    author init --work-dir <小说目录>`);
+        console.log(`  或切换到小说目录后运行:`);
+        console.log(`    cd <小说目录> && author init`);
+        process.exit(1);
+      }
+
+      const skillsDir = join(workDir, ".claude", "skills");
       const authorSkillsDir = join(authorCliRoot, "skills");
 
       console.log(`工作目录: ${workDir}`);
