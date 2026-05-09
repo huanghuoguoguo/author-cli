@@ -4,3 +4,18 @@ generated/
 *.tsbuildinfo
 .env
 .env.local
+
+# User data (novel content - keep local only)
+canon/**/*.yaml
+canon/**/*.md
+manuscript/**/*.md
+proposals/**/*.yaml
+notes/**/*.md
+project.yaml
+AGENTS.md
+
+# But keep empty directory markers
+!canon/**/.gitkeep
+!manuscript/**/.gitkeep
+!proposals/**/.gitkeep
+!notes/**/.gitkeep
