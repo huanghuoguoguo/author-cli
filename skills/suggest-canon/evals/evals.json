@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "suggest-001",
+      "prompt": "写完 ch005 后提取新增角色建议",
+      "expected_behavior": "运行 suggest，生成提案，等待审核",
+      "skills_triggered": ["suggest-canon"]
+    },
+    {
+      "id": "suggest-002",
+      "prompt": "这章有什么新角色？",
+      "expected_behavior": "分析正文，提取对话说话者，生成建议",
+      "skills_triggered": ["suggest-canon"]
+    },
+    {
+      "id": "suggest-003",
+      "prompt": "应用提案 proposal-20260509-ch003",
+      "expected_behavior": "审核提案内容，确认后运行 proposal apply",
+      "skills_triggered": ["suggest-canon"]
+    }
+  ]
+}

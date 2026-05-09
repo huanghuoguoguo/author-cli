@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "continuity-001",
+      "prompt": "这章有没有设定冲突？",
+      "expected_behavior": "运行 check continuity，报告问题",
+      "skills_triggered": ["continuity-check"]
+    },
+    {
+      "id": "continuity-002",
+      "prompt": "检查 ch002 的连续性",
+      "expected_behavior": "检查角色引用、地点引用、伏笔状态",
+      "skills_triggered": ["continuity-check"]
+    },
+    {
+      "id": "continuity-003",
+      "prompt": "全局检查一下有没有问题",
+      "expected_behavior": "运行 check global，检查伏笔和时间线",
+      "skills_triggered": ["continuity-check"]
+    }
+  ]
+}

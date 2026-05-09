@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "write-scenes-001",
+      "prompt": "继续写 ch003",
+      "expected_behavior": "加载写作风格，生成上下文，编辑正文，更新状态",
+      "skills_triggered": ["write-scenes", "writing-style"]
+    },
+    {
+      "id": "write-scenes-002",
+      "prompt": "写 ch001 的开场场景",
+      "expected_behavior": "校验项目，生成 context，创建章节文件，编辑正文",
+      "skills_triggered": ["write-scenes"]
+    },
+    {
+      "id": "write-scenes-003",
+      "prompt": "帮我把 ch005 的对话改得更口语化",
+      "expected_behavior": "阅读上下文，参考角色说话风格，修改正文",
+      "skills_triggered": ["write-scenes", "writing-style"]
+    }
+  ]
+}

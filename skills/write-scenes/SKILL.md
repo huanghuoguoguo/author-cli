@@ -1,113 +1,86 @@
 ---
 name: write-scenes
-description: "写小说场景的完整流程。TRIGGER when: 用户说'写章节'、'写场景'、'开始写作'、'写 chXXX'、'续写'，或任何与创作正文内容相关的请求。即使用户只是说'帮我写'或'继续写'，也应触发此 skill。"
+description: "Use when drafting, continuing, or revising novel manuscript scenes; writing chapter prose; converting outline beats into chapter content; or responding to any creative writing request. Triggers on '写章节', '写场景', '开始写作', '续写', '写 chXXX', '帮我写', '继续写'."
 ---
 
 # Write Scenes
 
-指导 Claude Code 使用 author-cli 写小说场景的完整流程。
+使用 author-cli 写小说场景的完整流程。
 
-## 写作前
+## 前置准备
 
 ### 1. 校验项目
 
 ```bash
-author validate
+npm run author -- validate
+# 或全局安装后: author validate
 ```
 
-如果有错误，先修复再继续。
+有错误先修复。
 
-### 2. 生成上下文
+### 2. 加载写作风格
+
+根据 `project.yaml` 的 `writingMode` 加载对应风格：
+
+- `webnovel` → 参考 [writing-style/webnovel.md](../writing-style/webnovel.md)
+- `traditional` → 参考 [writing-style/traditional.md](../writing-style/traditional.md)
+- `screenplay` → 参考 [writing-style/screenplay.md](../writing-style/screenplay.md)
+
+### 3. 生成上下文
 
 ```bash
-author render context --chapter <chapter-id>
+npm run author -- render context --chapter <chapter-id>
 ```
 
-### 3. 阅读上下文
+### 4. 阅读上下文
 
-读取 `generated/context/<chapter-id>.md`，了解：
-- 写作规则（必须做、禁止做）
-- 当前章节信息（目的、节拍）
-- 相关角色（性格、动机、说话风格）
-- 大纲和伏笔状态
+读取 `generated/context/<chapter-id>.md`：
+- 写作规则
+- 章节目的和节拍
+- 相关角色设定
+- 大纲和伏笔
 - 前文摘要
-- 当前章节正文窗口
 
-### 4. 确认写作目标
-
-根据上下文中的章节目的和节拍，明确本次写作的目标。
-
-## 写作中
+## 写作执行
 
 ### 5. 编辑正文
 
-直接编辑 `manuscript/v01/<chapter-id>.md`。
+直接编辑 `manuscript/v01/<chapter-id>.md`
 
-写作时注意：
-- 遵守上下文中的写作规则
-- 保持角色声音一致
-- 参考角色的说话风格和性格
-- 按照大纲节拍推进情节
-- 注意伏笔的埋设和回收
+遵守：
+- 上下文中的写作规则
+- 角色声音一致
+- 大纲节拍推进
 
-### 6. 新增角色/设定
+### 6. 新增设定
 
-如果正文中出现了新的角色、地点、物品等，通过 CLI 添加：
+**必须通过 CLI**，禁止直接编辑 canon YAML：
 
 ```bash
-# 新角色
-author character add --id <id> --name <name> --role <role>
-author character note <id> --chapter <chapter-id> --text <note>
-
-# 新地点
-author location add --id <id> --name <name>
-author location note <id> --chapter <chapter-id> --text <note>
-
-# 新世界观设定
-author world add --id <id> --name <name> --category <cat>
-author world note <id> --chapter <chapter-id> --text <note>
-
-# 新物品/道具
-author object add --id <id> --name <name> --type <type>
-author object note <id> --chapter <chapter-id> --text <note>
-
-# 时间线事件
-author timeline add --id <id> --title <title> --chapter <chapter-id>
+npm run author -- character add --id <id> --name <name> --role <role>
+npm run author -- location add --id <id> --name <name>
+npm run author -- world add --id <id> --name <name> --category <cat>
 ```
 
-**不要直接编辑 canon YAML 文件。**
+## 后置收尾
 
-## 写作后
-
-### 7. 更新大纲状态
+### 7. 更新状态
 
 ```bash
-author outline update-chapter <chapter-id> --field status --value drafted
+npm run author -- outline update-chapter <chapter-id> --field status --value drafted
 ```
 
 ### 8. 再次校验
 
 ```bash
-author validate
-```
-
-### 9. 重新渲染（可选）
-
-如果修改了设定，重新生成 context：
-
-```bash
-author render context --chapter <chapter-id>
+npm run author -- validate
 ```
 
 ## 命令速查
 
-| 操作 | 命令 |
-|------|------|
-| 校验项目 | `author validate` |
-| 生成 context | `author render context --chapter <id>` |
-| 创建章节 | `author chapter add --id <id> --title <title>` |
-| 删除章节 | `author chapter delete <id>` |
-| 添加角色 | `author character add --id <id> --name <name>` |
-| 角色备注 | `author character note <id> --chapter <ch> --text <text>` |
-| 添加地点 | `author location add --id <id> --name <name>` |
-| 添加事件 | `author timeline add --id <id> --title <title>` |
+详见 [reference/author-cli-commands.md](../reference/author-cli-commands.md)
+
+本流程常用命令：
+- `npm run author -- validate`
+- `npm run author -- render context --chapter <id>`
+- `npm run author -- outline update-chapter <id> --field status --value drafted`
