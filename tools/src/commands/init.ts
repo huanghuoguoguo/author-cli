@@ -6,9 +6,7 @@ const SKILLS = [
   "write-scenes",
   "suggest-canon",
   "continuity-check",
-  "webnovel-style",
-  "traditional-style",
-  "screenplay-style",
+  "writing-style",
   "import-manuscript",
 ];
 
