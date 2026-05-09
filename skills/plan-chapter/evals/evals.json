@@ -1,0 +1,22 @@
+{
+  "evals": [
+    {
+      "id": "plan-001",
+      "prompt": "准备写 ch003",
+      "expected_behavior": "校验项目，查看大纲，生成上下文，确认目标",
+      "skills_triggered": ["plan-chapter", "writing-style"]
+    },
+    {
+      "id": "plan-002",
+      "prompt": "看下 ch005 要写什么",
+      "expected_behavior": "阅读上下文，列出节拍和目标",
+      "skills_triggered": ["plan-chapter"]
+    },
+    {
+      "id": "plan-003",
+      "prompt": "写之前先规划一下",
+      "expected_behavior": "校验，加载风格，生成 context，确认目标",
+      "skills_triggered": ["plan-chapter", "writing-style"]
+    }
+  ]
+}

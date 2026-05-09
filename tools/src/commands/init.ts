@@ -3,6 +3,7 @@ import { resolve, join, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SKILLS = [
+  "plan-chapter",
   "write-scenes",
   "suggest-canon",
   "continuity-check",

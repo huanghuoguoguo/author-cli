@@ -26,13 +26,19 @@
 
 ### Skills（Claude Code 工作流）
 
-| Skill | 用途 |
-|-------|------|
-| `write-scenes` | 完整写作流程：校验 → 上下文 → 写作 → 更新设定 |
-| `suggest-canon` | 从章节正文提取新角色/地点等建议 |
-| `continuity-check` | 检测故事连续性问题 |
-| `writing-style` | 写作风格指南（网文/文学/剧本三种模式） |
-| `import-manuscript` | 从现有章节导入设定和风格 |
+按写作阶段顺序：
+
+| 阶段 | Skill | 用途 |
+|------|-------|------|
+| 准备 | `import-manuscript` | 从现有章节导入设定和风格 |
+| 准备 | `plan-chapter` | 写作前确认目标、加载上下文 |
+| 创作 | `writing-style` | 写作风格指南（网文/文学/剧本） |
+| 创作 | `write-scenes` | 完整写作流程：校验 → 上下文 → 写作 → 更新 |
+| 审核 | `suggest-canon` | 从章节正文提取新角色/地点建议 |
+| 审核 | `continuity-check` | 检测故事连续性问题 |
+
+共享参考：
+- `reference/author-cli-commands.md` - 命令速查
 
 ### 设计亮点
 
