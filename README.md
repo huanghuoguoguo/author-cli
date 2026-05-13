@@ -67,6 +67,8 @@
 ```bash
 # 交互模式
 author ai
+# TUI 图形界面模式
+author ai --tui
 
 # 单条消息模式
 author ai --message "分析一下主角的性格特点"

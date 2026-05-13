@@ -11,6 +11,7 @@ import { getProjectPaths } from "../utils/paths.js";
 import { readYaml } from "../utils/yaml.js";
 import { createInterface } from "node:readline";
 import { homedir } from "node:os";
+import { startTUI } from "../tui/index.js";
 
 /**
  * 会话历史记录
@@ -585,6 +586,7 @@ export function registerAICommand(program: any) {
     .option("--session <id>", "加载指定会话")
     .option("--list-sessions", "列出所有会话")
     .option("--delete-session <id>", "删除指定会话")
+    .option("--tui", "启动 TUI 界面（图形化交互）")
     .action(
       async (opts: {
         model?: string;
@@ -594,11 +596,22 @@ export function registerAICommand(program: any) {
         session?: string;
         listSessions?: boolean;
         deleteSession?: string;
+        tui?: boolean;
       }) => {
         // 检查 API key
         if (!process.env.ANTHROPIC_API_KEY) {
           console.error("错误: 请设置 ANTHROPIC_API_KEY 环境变量");
           process.exit(1);
+        }
+
+        // TUI 模式
+        if (opts.tui) {
+          startTUI({
+            model: opts.model,
+            maxTokens: opts.maxTokens ? parseInt(opts.maxTokens) : undefined,
+            systemPrompt: opts.systemPrompt,
+          });
+          return;
         }
 
         // 创建 AI 助手
