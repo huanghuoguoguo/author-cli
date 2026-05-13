@@ -15,7 +15,7 @@ import { registerProposalCommand } from "./commands/proposal.js";
 import { registerCheckCommand } from "./commands/check.js";
 import { registerIndexCommand } from "./commands/index.js";
 import { registerInitCommand } from "./commands/init.js";
-import { registerAICommand } from "./commands/ai.js";
+import { registerAICommand } from "./commands/ai-pi.js";
 
 const program = new Command();
 

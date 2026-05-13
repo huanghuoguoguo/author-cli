@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Text, useApp, useInput, useStdin } from "ink";
+import { Box, Text, useApp, useInput } from "ink";
 import TextInput from "ink-text-input";
 import Spinner from "ink-spinner";
+import { PiAgentWrapper } from "../commands/ai-pi.js";
+import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent";
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -10,24 +12,24 @@ interface Message {
 }
 
 interface ChatTUIProps {
-  onSend: (message: string) => Promise<string>;
-  sessionId: string;
-  model: string;
+  model?: string;
+  sessionId?: string;
 }
 
 /**
- * 聊天 TUI 组件
+ * 聊天 TUI 组件（基于 Pi Agent）
  */
 export const ChatTUI: React.FC<ChatTUIProps> = ({
-  onSend,
+  model = "claude-sonnet-4-20250514",
   sessionId,
-  model,
 }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [inputHistory, setInputHistory] = useState<string[]>([]);
+  const agentRef = useRef<PiAgentWrapper | null>(null);
   const messagesEndRef = useRef<Box>(null);
   const { exit } = useApp();
 
@@ -40,20 +42,100 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // 添加系统消息
+  // 初始化 Agent
   useEffect(() => {
-    setMessages([
-      {
-        role: "system",
-        content: `轻量级 AI 助手已启动\n模型: ${model}\n会话 ID: ${sessionId}\n输入 'help' 查看可用命令`,
-        timestamp: new Date(),
-      },
-    ]);
+    const initAgent = async () => {
+      const agent = new PiAgentWrapper({
+        model,
+        sessionId,
+      });
+
+      // 监听事件
+      agent.onEvent((event: AgentSessionEvent) => {
+        handleAgentEvent(event);
+      });
+
+      try {
+        await agent.initialize();
+        agentRef.current = agent;
+        setIsInitialized(true);
+
+        setMessages([
+          {
+            role: "system",
+            content: `AI 助手已启动\n模型: ${model}\n会话 ID: ${agent.getSessionId()}\n输入 'help' 查看可用命令`,
+            timestamp: new Date(),
+          },
+        ]);
+      } catch (error: any) {
+        setMessages([
+          {
+            role: "system",
+            content: `初始化失败: ${error.message}`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    };
+
+    initAgent();
+
+    return () => {
+      if (agentRef.current) {
+        agentRef.current.dispose();
+      }
+    };
   }, []);
+
+  // 处理 Agent 事件
+  const handleAgentEvent = (event: AgentSessionEvent) => {
+    switch (event.type) {
+      case "message_end":
+        if (event.message?.role === "assistant") {
+          const content =
+            event.message.content
+              ?.filter((c: any) => c.type === "text")
+              .map((c: any) => c.text)
+              .join("") || "";
+
+          if (content) {
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content,
+                timestamp: new Date(),
+              },
+            ]);
+          }
+        }
+        setIsLoading(false);
+        break;
+
+      case "tool_call":
+        // 可以在这里显示工具调用状态
+        break;
+
+      case "error":
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "system",
+            content: `错误: ${event.error}`,
+            timestamp: new Date(),
+          },
+        ]);
+        setIsLoading(false);
+        break;
+    }
+  };
 
   // 处理键盘输入
   useInput((inputChar, key) => {
     if (key.ctrl && inputChar === "c") {
+      if (agentRef.current) {
+        agentRef.current.dispose();
+      }
       exit();
     }
 
@@ -71,14 +153,16 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
     if (key.downArrow) {
       const newIndex = historyIndex > 0 ? historyIndex - 1 : -1;
       setHistoryIndex(newIndex);
-      setInput(newIndex >= 0 ? inputHistory[inputHistory.length - 1 - newIndex] : "");
+      setInput(
+        newIndex >= 0 ? inputHistory[inputHistory.length - 1 - newIndex] : ""
+      );
     }
   });
 
   // 处理提交
   const handleSubmit = async (value: string) => {
     const trimmed = value.trim();
-    if (!trimmed || isLoading) return;
+    if (!trimmed || isLoading || !isInitialized) return;
 
     // 添加到输入历史
     setInputHistory((prev) => [...prev, trimmed]);
@@ -86,6 +170,9 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
 
     // 处理特殊命令
     if (trimmed.toLowerCase() === "exit" || trimmed.toLowerCase() === "quit") {
+      if (agentRef.current) {
+        agentRef.current.dispose();
+      }
       exit();
       return;
     }
@@ -104,35 +191,12 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
           role: "system",
           content: `可用命令:
   help, h          - 显示帮助信息
-  history          - 显示对话历史
   clear            - 清空对话历史
   exit, quit       - 退出程序
 
 快捷键:
   Ctrl+C           - 强制退出
   ↑/↓              - 浏览输入历史`,
-          timestamp: new Date(),
-        },
-      ]);
-      setInput("");
-      return;
-    }
-
-    if (trimmed.toLowerCase() === "history") {
-      const historyText = messages
-        .filter((m) => m.role !== "system")
-        .map(
-          (m) =>
-            `[${m.role === "user" ? "你" : "AI"}] ${m.content.substring(0, 100)}${m.content.length > 100 ? "..." : ""}`
-        )
-        .join("\n");
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: trimmed, timestamp: new Date() },
-        {
-          role: "system",
-          content: historyText || "对话历史为空",
           timestamp: new Date(),
         },
       ]);
@@ -151,23 +215,17 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
     setIsLoading(true);
 
     try {
-      // 发送消息并获取回复
-      const response = await onSend(trimmed);
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: response,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
+      // 发送消息
+      await agentRef.current?.prompt(trimmed);
     } catch (error: any) {
-      const errorMessage: Message = {
-        role: "system",
-        content: `错误: ${error.message}`,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "system",
+          content: `错误: ${error.message}`,
+          timestamp: new Date(),
+        },
+      ]);
       setIsLoading(false);
     }
   };
@@ -218,15 +276,15 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
         justifyContent="space-between"
       >
         <Text color="blue" bold>
-          Author CLI AI 助手
+          Author CLI AI 助手 (Pi Agent)
         </Text>
         <Text color="gray">
-          模型: {model} | 会话: {sessionId.substring(0, 12)}...
+          模型: {model} | 状态: {isInitialized ? "就绪" : "初始化中..."}
         </Text>
       </Box>
 
       {/* 消息区域 */}
-      <Box flexDirection="column" flexGrow={1} overflowY="auto" padding={1}>
+      <Box flexDirection="column" flexGrow={1} overflowY="hidden" padding={1}>
         {messages.map((msg, index) => (
           <Box key={index} flexDirection="column" marginBottom={1}>
             <Box>
@@ -263,7 +321,7 @@ export const ChatTUI: React.FC<ChatTUIProps> = ({
           value={input}
           onChange={setInput}
           onSubmit={handleSubmit}
-          placeholder="输入消息..."
+          placeholder={isInitialized ? "输入消息..." : "初始化中..."}
         />
       </Box>
     </Box>
