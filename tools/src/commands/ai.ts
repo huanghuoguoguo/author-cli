@@ -73,6 +73,7 @@ export class LightweightAI {
 1. 读取和分析小说项目的 canon 数据（角色、地点、世界观等）
 2. 执行 bash 命令进行文件操作
 3. 提供写作建议和反馈
+4. 加载和执行 author-cli 技能（skills）
 
 规则：
 - 只使用提供的工具，不要编造工具
@@ -86,9 +87,24 @@ export class LightweightAI {
 - canon/world/ - 世界观设定
 - canon/objects/ - 物品信息
 - canon/plot/ - 情节大纲
-- manuscript/ - 章节正文`;
-  }
+- manuscript/ - 章节正文
+- skills/ - 写作技能（如 write-scenes、suggest-canon、continuity-check）
 
+可用技能：
+- write-scenes: 完整写作流程（validate → context → write → update）
+- suggest-canon: 从章节正文提取 canon 变更建议
+- continuity-check: 检测故事连续性问题
+- plan-chapter: 写前确认目标、加载上下文
+- bootstrap-story: 从零共创设定和大纲
+- migrate-existing-project: 迁移已有项目
+- reconstruct-story-bible: 从正文重建设定
+
+使用技能的方法：
+1. 使用 skill_loader 工具列出可用技能
+2. 使用 skill_loader 工具加载特定技能的内容
+3. 根据技能指导执行相应操作
+4. 使用 bash 工具执行 author 命令`;
+  }
   /**
    * 获取项目上下文信息
    */
@@ -204,6 +220,29 @@ export class LightweightAI {
           required: ["path"],
         },
       },
+      {
+        name: "skill_loader",
+        description: "加载并执行 author-cli 技能（如 write-scenes、suggest-canon 等）",
+        input_schema: {
+          type: "object" as const,
+          properties: {
+            skill_name: {
+              type: "string",
+              description: "技能名称（如 write-scenes、suggest-canon、continuity-check）",
+            },
+            action: {
+              type: "string",
+              enum: ["load", "list", "execute"],
+              description: "操作类型：load=加载技能内容，list=列出所有技能，execute=执行技能",
+            },
+            args: {
+              type: "string",
+              description: "执行技能时的参数（如章节 ID）",
+            },
+          },
+          required: ["action"],
+        },
+      },
     ];
   }
 
@@ -274,6 +313,73 @@ export class LightweightAI {
         } catch (e: any) {
           return `错误: 列出文件失败 - ${e.message}`;
         }
+      }
+
+      case "skill_loader": {
+        const skillsDir = join(paths.root, "skills");
+        if (!existsSync(skillsDir)) {
+          return "错误: skills 目录不存在";
+        }
+
+        const action = input.action;
+        const skillName = input.skill_name;
+        const args = input.args;
+
+        // 列出所有技能
+        if (action === "list") {
+          try {
+            const skills = readdirSync(skillsDir, { withFileTypes: true })
+              .filter((d) => d.isDirectory())
+              .map((d) => d.name);
+            return `可用技能:\n${skills.join("\n")}`;
+          } catch (e: any) {
+            return `错误: 列出技能失败 - ${e.message}`;
+          }
+        }
+
+        // 加载技能内容
+        if (action === "load") {
+          if (!skillName) {
+            return "错误: 请指定技能名称";
+          }
+          const skillPath = join(skillsDir, skillName, "SKILL.md");
+          if (!existsSync(skillPath)) {
+            return `错误: 技能 ${skillName} 不存在`;
+          }
+          try {
+            return readFileSync(skillPath, "utf-8");
+          } catch (e: any) {
+            return `错误: 加载技能失败 - ${e.message}`;
+          }
+        }
+
+        // 执行技能
+        if (action === "execute") {
+          if (!skillName) {
+            return "错误: 请指定技能名称";
+          }
+          const skillPath = join(skillsDir, skillName, "SKILL.md");
+          if (!existsSync(skillPath)) {
+            return `错误: 技能 ${skillName} 不存在`;
+          }
+          try {
+            // 读取技能内容
+            const skillContent = readFileSync(skillPath, "utf-8");
+            // 解析技能中的命令
+            const commandMatch = skillContent.match(/```bash\n([\s\S]*?)\n```/);
+            if (commandMatch) {
+              const commands = commandMatch[1].split("\n").filter((c) => c.trim());
+              // 执行第一个命令
+              const command = commands[0].replace("author ", "").trim();
+              return `执行技能 ${skillName}:\n命令: author ${command}\n参数: ${args || "无"}`;
+            }
+            return `技能 ${skillName} 内容:\n${skillContent}`;
+          } catch (e: any) {
+            return `错误: 执行技能失败 - ${e.message}`;
+          }
+        }
+
+        return "错误: 无效的操作类型";
       }
 
       default:
