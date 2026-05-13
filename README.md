@@ -49,6 +49,38 @@
 - `reference/author-cli-commands.md` - 命令速查
 
 ### 设计亮点
+### 轻量级 AI 助手
+
+**问题**：直接使用 Claude Code CLI 首轮对话消耗 **27k+ token**（完整系统提示 + 28 个工具）。
+
+**解决方案**：使用 Anthropic SDK 构建极简 AI 助手，首轮 token 消耗降至 **2-3k**。
+
+**核心优化**：
+- 只加载 3 个必要工具（`file_read`、`bash`、`list_files`）
+- 手写极简 System Prompt（替代官方几 k 字的提示）
+- 支持交互模式和单条消息模式
+- 内置安全限制（禁止危险命令）
+
+```bash
+# 交互模式
+author ai
+
+# 单条消息模式
+author ai --message "分析一下主角的性格特点"
+
+# 自定义模型
+author ai --model claude-3-opus-20240229
+
+# 自定义系统提示
+author ai --system-prompt "你是一个专业的编辑助手"
+```
+
+**Token 对比**：
+
+| 版本 | 工具数量 | 首轮 Token |
+|---|---:|---:|
+| 官方默认 | 28 个 | **27k** |
+| 轻量版 | 3 个 | **2-3k** |
 
 - **CLI 作为写入边界**：所有 canon 变更必须通过 CLI，确保 schema 校验和 ID 一致性
 - **零依赖 RAG**：关键词搜索 + 内容 hash 增量更新，无需向量 API

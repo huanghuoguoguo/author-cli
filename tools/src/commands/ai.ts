@@ -1,0 +1,433 @@
+import Anthropic from "@anthropic-ai/sdk";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { getProjectPaths } from "../utils/paths.js";
+import { readYaml } from "../utils/yaml.js";
+import { createInterface } from "node:readline";
+
+/**
+ * 轻量级 AI 助手
+ * 使用 Anthropic SDK 直接调用，避免 Claude Code CLI 的 27k token 开销
+ * 首轮 token 消耗约 2-3k
+ */
+export class LightweightAI {
+  private client: Anthropic;
+  private model: string;
+  private maxTokens: number;
+  private systemPrompt: string;
+  private conversationHistory: Anthropic.MessageParam[] = [];
+
+  constructor(options: {
+    apiKey?: string;
+    model?: string;
+    maxTokens?: number;
+    systemPrompt?: string;
+  } = {}) {
+    this.client = new Anthropic({
+      apiKey: options.apiKey || process.env.ANTHROPIC_API_KEY,
+    });
+    this.model = options.model || "claude-3-5-sonnet-latest";
+    this.maxTokens = options.maxTokens || 1024;
+    this.systemPrompt =
+      options.systemPrompt || this.getDefaultSystemPrompt();
+  }
+
+  /**
+   * 获取默认的极简系统提示
+   */
+  private getDefaultSystemPrompt(): string {
+    return `你是一个小说写作助手，专注于帮助用户管理小说项目。
+
+你的能力：
+1. 读取和分析小说项目的 canon 数据（角色、地点、世界观等）
+2. 执行 bash 命令进行文件操作
+3. 提供写作建议和反馈
+
+规则：
+- 只使用提供的工具，不要编造工具
+- 回答简洁，只输出必要内容
+- 优先使用中文回复
+- 遵循项目结构：canon/ 目录存储结构化数据，manuscript/ 存储章节正文
+
+项目结构：
+- canon/characters/ - 角色信息
+- canon/locations/ - 地点信息
+- canon/world/ - 世界观设定
+- canon/objects/ - 物品信息
+- canon/plot/ - 情节大纲
+- manuscript/ - 章节正文`;
+  }
+
+  /**
+   * 获取项目上下文信息
+   */
+  private getProjectContext(): string {
+    const paths = getProjectPaths();
+    const contextParts: string[] = [];
+
+    // 读取项目配置
+    const projectPath = join(paths.root, "project.yaml");
+    if (existsSync(projectPath)) {
+      const project = readYaml(projectPath);
+      if (project) {
+        contextParts.push(`项目配置: ${JSON.stringify(project, null, 2)}`);
+      }
+    }
+
+    // 统计 canon 数据
+    const stats = {
+      characters: 0,
+      locations: 0,
+      world: 0,
+      objects: 0,
+      chapters: 0,
+    };
+
+    try {
+      const { readdirSync } = require("node:fs");
+      if (existsSync(paths.charactersDir)) {
+        stats.characters = readdirSync(paths.charactersDir).filter(
+          (f: string) => f.endsWith(".yaml")
+        ).length;
+      }
+      if (existsSync(paths.locationsDir)) {
+        stats.locations = readdirSync(paths.locationsDir).filter(
+          (f: string) => f.endsWith(".yaml")
+        ).length;
+      }
+      if (existsSync(paths.worldDir)) {
+        stats.world = readdirSync(paths.worldDir).filter((f: string) =>
+          f.endsWith(".yaml")
+        ).length;
+      }
+      if (existsSync(paths.objectsDir)) {
+        stats.objects = readdirSync(paths.objectsDir).filter((f: string) =>
+          f.endsWith(".yaml")
+        ).length;
+      }
+      if (existsSync(paths.manuscriptDir)) {
+        const volumes = readdirSync(paths.manuscriptDir, {
+          withFileTypes: true,
+        }).filter((d: any) => d.isDirectory());
+        for (const vol of volumes) {
+          const volPath = join(paths.manuscriptDir, vol.name);
+          stats.chapters += readdirSync(volPath).filter((f: string) =>
+            f.endsWith(".md")
+          ).length;
+        }
+      }
+    } catch (e) {
+      // 忽略错误
+    }
+
+    contextParts.push(
+      `项目统计: ${stats.characters} 角色, ${stats.locations} 地点, ${stats.world} 世界观, ${stats.objects} 物品, ${stats.chapters} 章节`
+    );
+
+    return contextParts.join("\n\n");
+  }
+
+  /**
+   * 定义可用的工具
+   */
+  private getTools(): Anthropic.Tool[] {
+    return [
+      {
+        name: "file_read",
+        description: "读取文件内容",
+        input_schema: {
+          type: "object" as const,
+          properties: {
+            path: {
+              type: "string",
+              description: "文件路径（相对于项目根目录）",
+            },
+          },
+          required: ["path"],
+        },
+      },
+      {
+        name: "bash",
+        description: "执行 bash 命令（只读操作）",
+        input_schema: {
+          type: "object" as const,
+          properties: {
+            command: {
+              type: "string",
+              description: "要执行的命令",
+            },
+          },
+          required: ["command"],
+        },
+      },
+      {
+        name: "list_files",
+        description: "列出目录下的文件",
+        input_schema: {
+          type: "object" as const,
+          properties: {
+            path: {
+              type: "string",
+              description: "目录路径（相对于项目根目录）",
+            },
+          },
+          required: ["path"],
+        },
+      },
+    ];
+  }
+
+  /**
+   * 执行工具调用
+   */
+  private async executeTool(
+    toolName: string,
+    input: Record<string, string>
+  ): Promise<string> {
+    const paths = getProjectPaths();
+    const { execSync } = require("node:child_process");
+
+    switch (toolName) {
+      case "file_read": {
+        const filePath = join(paths.root, input.path);
+        if (!existsSync(filePath)) {
+          return `错误: 文件不存在 ${input.path}`;
+        }
+        try {
+          return readFileSync(filePath, "utf-8");
+        } catch (e: any) {
+          return `错误: 读取文件失败 - ${e.message}`;
+        }
+      }
+
+      case "bash": {
+        // 安全限制：只允许只读命令
+        const dangerousCommands = [
+          "rm",
+          "mv",
+          "cp",
+          "chmod",
+          "chown",
+          "sudo",
+          "apt",
+          "yum",
+          "npm install",
+          "pip install",
+        ];
+        const cmd = input.command.toLowerCase().trim();
+        for (const dangerous of dangerousCommands) {
+          if (cmd.startsWith(dangerous)) {
+            return `错误: 安全限制 - 不允许执行 ${dangerous} 命令`;
+          }
+        }
+
+        try {
+          const result = execSync(input.command, {
+            cwd: paths.root,
+            encoding: "utf-8",
+            timeout: 10000,
+          });
+          return result;
+        } catch (e: any) {
+          return `错误: 命令执行失败 - ${e.message}`;
+        }
+      }
+
+      case "list_files": {
+        const dirPath = join(paths.root, input.path);
+        if (!existsSync(dirPath)) {
+          return `错误: 目录不存在 ${input.path}`;
+        }
+        try {
+          const files = require("node:fs").readdirSync(dirPath);
+          return files.join("\n");
+        } catch (e: any) {
+          return `错误: 列出文件失败 - ${e.message}`;
+        }
+      }
+
+      default:
+        return `错误: 未知工具 ${toolName}`;
+    }
+  }
+
+  /**
+   * 发送消息并获取回复
+   */
+  async chat(userMessage: string): Promise<string> {
+    // 添加用户消息到历史
+    this.conversationHistory.push({
+      role: "user",
+      content: userMessage,
+    });
+
+    // 构建请求
+    const request: Anthropic.MessageCreateParams = {
+      model: this.model,
+      max_tokens: this.maxTokens,
+      system: this.systemPrompt,
+      tools: this.getTools(),
+      messages: this.conversationHistory,
+    };
+
+    try {
+      // 发送请求
+      const response = await this.client.messages.create(request);
+
+      // 处理响应
+      let assistantMessage = "";
+      const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+      for (const block of response.content) {
+        if (block.type === "text") {
+          assistantMessage += block.text;
+        } else if (block.type === "tool_use") {
+          // 执行工具调用
+          const toolResult = await this.executeTool(
+            block.name,
+            block.input as Record<string, string>
+          );
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content: toolResult,
+          });
+        }
+      }
+
+      // 如果有工具调用，需要继续对话获取最终回复
+      if (toolResults.length > 0) {
+        // 添加助手消息到历史
+        this.conversationHistory.push({
+          role: "assistant",
+          content: response.content,
+        });
+
+        // 添加工具结果到历史
+        this.conversationHistory.push({
+          role: "user",
+          content: toolResults,
+        });
+
+        // 递归调用获取最终回复
+        return this.chat("");
+      }
+
+      // 添加助手消息到历史
+      this.conversationHistory.push({
+        role: "assistant",
+        content: assistantMessage,
+      });
+
+      return assistantMessage;
+    } catch (error: any) {
+      throw new Error(`AI 请求失败: ${error.message}`);
+    }
+  }
+
+  /**
+   * 清空对话历史
+   */
+  clearHistory(): void {
+    this.conversationHistory = [];
+  }
+
+  /**
+   * 获取对话历史
+   */
+  getHistory(): Anthropic.MessageParam[] {
+    return [...this.conversationHistory];
+  }
+}
+
+/**
+ * 注册 AI 命令
+ */
+export function registerAICommand(program: any) {
+  program
+    .command("ai")
+    .description("启动轻量级 AI 助手")
+    .option("--model <model>", "AI 模型", "claude-3-5-sonnet-latest")
+    .option("--max-tokens <tokens>", "最大 token 数", "1024")
+    .option("--system-prompt <prompt>", "自定义系统提示")
+    .option("--message <message>", "单条消息模式（不进入交互）")
+    .action(
+      async (opts: {
+        model?: string;
+        maxTokens?: string;
+        systemPrompt?: string;
+        message?: string;
+      }) => {
+        // 检查 API key
+        if (!process.env.ANTHROPIC_API_KEY) {
+          console.error("错误: 请设置 ANTHROPIC_API_KEY 环境变量");
+          process.exit(1);
+        }
+
+        // 创建 AI 助手
+        const ai = new LightweightAI({
+          model: opts.model,
+          maxTokens: opts.maxTokens ? parseInt(opts.maxTokens) : undefined,
+          systemPrompt: opts.systemPrompt,
+        });
+
+        // 单条消息模式
+        if (opts.message) {
+          try {
+            const response = await ai.chat(opts.message);
+            console.log(response);
+          } catch (error: any) {
+            console.error(error.message);
+            process.exit(1);
+          }
+          return;
+        }
+
+        // 交互模式
+        console.log("轻量级 AI 助手已启动");
+        console.log("输入 'exit' 或 'quit' 退出");
+        console.log("输入 'clear' 清空对话历史");
+        console.log("-".repeat(40));
+
+        const rl = createInterface({
+          input: process.stdin,
+          output: process.stdout,
+        });
+
+        const prompt = () => {
+          rl.question("\n你: ", async (input) => {
+            const trimmed = input.trim();
+
+            if (["exit", "quit"].includes(trimmed.toLowerCase())) {
+              console.log("再见！");
+              rl.close();
+              return;
+            }
+
+            if (trimmed.toLowerCase() === "clear") {
+              ai.clearHistory();
+              console.log("对话历史已清空");
+              prompt();
+              return;
+            }
+
+            if (!trimmed) {
+              prompt();
+              return;
+            }
+
+            try {
+              const response = await ai.chat(trimmed);
+              console.log(`\nAI: ${response}`);
+            } catch (error: any) {
+              console.error(`\n错误: ${error.message}`);
+            }
+
+            prompt();
+          });
+        };
+
+        prompt();
+      }
+    );
+}
