@@ -23,6 +23,7 @@
 | `proposal` | 提案管理（apply/reject） |
 | `check` | 连续性检查（角色引用、地点引用、伏笔状态、时间线顺序） |
 | `index` | RAG 索引（重建、状态、关键词搜索） |
+| `ai` | 轻量级 AI 助手（支持会话历史） |
 
 ### Skills（Claude Code 工作流）
 
@@ -49,6 +50,7 @@
 - `reference/author-cli-commands.md` - 命令速查
 
 ### 设计亮点
+
 ### 轻量级 AI 助手
 
 **问题**：直接使用 Claude Code CLI 首轮对话消耗 **27k+ token**（完整系统提示 + 28 个工具）。
@@ -60,6 +62,7 @@
 - 手写极简 System Prompt（替代官方几 k 字的提示）
 - 支持交互模式和单条消息模式
 - 内置安全限制（禁止危险命令）
+- **会话历史管理**：支持保存、加载、列出、删除会话
 
 ```bash
 # 交互模式
@@ -73,6 +76,15 @@ author ai --model claude-3-opus-20240229
 
 # 自定义系统提示
 author ai --system-prompt "你是一个专业的编辑助手"
+
+# 加载历史会话
+author ai --session session-1234567890
+
+# 列出所有会话
+author ai --list-sessions
+
+# 删除会话
+author ai --delete-session session-1234567890
 ```
 
 **Token 对比**：
@@ -81,6 +93,19 @@ author ai --system-prompt "你是一个专业的编辑助手"
 |---|---:|---:|
 | 官方默认 | 28 个 | **27k** |
 | 轻量版 | 3 个 | **2-3k** |
+
+**交互命令**：
+
+| 命令 | 功能 |
+|------|------|
+| `help`, `h` | 显示帮助信息 |
+| `history` | 显示当前会话的对话历史 |
+| `sessions` | 列出所有会话 |
+| `load <id>` | 加载指定会话 |
+| `save` | 保存当前会话 |
+| `delete <id>` | 删除指定会话 |
+| `clear` | 清空当前对话历史 |
+| `exit`, `quit` | 退出程序 |
 
 - **CLI 作为写入边界**：所有 canon 变更必须通过 CLI，确保 schema 校验和 ID 一致性
 - **零依赖 RAG**：关键词搜索 + 内容 hash 增量更新，无需向量 API
@@ -186,8 +211,9 @@ author-cli/
 - [x] index 命令（RAG 索引）
 - [x] Skills 重构（YAML frontmatter + 目录结构）
 
-### Phase 3-6（待开发）
+### Phase 3（进行中）
 
+- [x] 轻量级 AI 助手（会话历史管理）
 - [ ] 导出功能（PDF/DOCX/EPUB）
 - [ ] 外部系统集成（可选）
 - [ ] 高级 RAG（可选向量搜索）

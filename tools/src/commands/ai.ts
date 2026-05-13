@@ -1,9 +1,27 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import {
+  readFileSync,
+  existsSync,
+  writeFileSync,
+  mkdirSync,
+  readdirSync,
+} from "node:fs";
+import { join, dirname } from "node:path";
 import { getProjectPaths } from "../utils/paths.js";
 import { readYaml } from "../utils/yaml.js";
 import { createInterface } from "node:readline";
+import { homedir } from "node:os";
+
+/**
+ * 会话历史记录
+ */
+interface SessionRecord {
+  id: string;
+  timestamp: string;
+  model: string;
+  messages: Anthropic.MessageParam[];
+  summary?: string;
+}
 
 /**
  * 轻量级 AI 助手
@@ -16,20 +34,32 @@ export class LightweightAI {
   private maxTokens: number;
   private systemPrompt: string;
   private conversationHistory: Anthropic.MessageParam[] = [];
+  private sessionId: string;
+  private historyDir: string;
 
-  constructor(options: {
-    apiKey?: string;
-    model?: string;
-    maxTokens?: number;
-    systemPrompt?: string;
-  } = {}) {
+  constructor(
+    options: {
+      apiKey?: string;
+      model?: string;
+      maxTokens?: number;
+      systemPrompt?: string;
+      sessionId?: string;
+    } = {}
+  ) {
     this.client = new Anthropic({
       apiKey: options.apiKey || process.env.ANTHROPIC_API_KEY,
     });
     this.model = options.model || "claude-3-5-sonnet-latest";
     this.maxTokens = options.maxTokens || 1024;
-    this.systemPrompt =
-      options.systemPrompt || this.getDefaultSystemPrompt();
+    this.systemPrompt = options.systemPrompt || this.getDefaultSystemPrompt();
+    this.sessionId =
+      options.sessionId || `session-${Date.now()}`;
+    this.historyDir = join(homedir(), ".author-cli", "history");
+
+    // 确保历史目录存在
+    if (!existsSync(this.historyDir)) {
+      mkdirSync(this.historyDir, { recursive: true });
+    }
   }
 
   /**
@@ -84,34 +114,33 @@ export class LightweightAI {
     };
 
     try {
-      const { readdirSync } = require("node:fs");
       if (existsSync(paths.charactersDir)) {
-        stats.characters = readdirSync(paths.charactersDir).filter(
-          (f: string) => f.endsWith(".yaml")
+        stats.characters = readdirSync(paths.charactersDir).filter((f) =>
+          f.endsWith(".yaml")
         ).length;
       }
       if (existsSync(paths.locationsDir)) {
-        stats.locations = readdirSync(paths.locationsDir).filter(
-          (f: string) => f.endsWith(".yaml")
+        stats.locations = readdirSync(paths.locationsDir).filter((f) =>
+          f.endsWith(".yaml")
         ).length;
       }
       if (existsSync(paths.worldDir)) {
-        stats.world = readdirSync(paths.worldDir).filter((f: string) =>
+        stats.world = readdirSync(paths.worldDir).filter((f) =>
           f.endsWith(".yaml")
         ).length;
       }
       if (existsSync(paths.objectsDir)) {
-        stats.objects = readdirSync(paths.objectsDir).filter((f: string) =>
+        stats.objects = readdirSync(paths.objectsDir).filter((f) =>
           f.endsWith(".yaml")
         ).length;
       }
       if (existsSync(paths.manuscriptDir)) {
         const volumes = readdirSync(paths.manuscriptDir, {
           withFileTypes: true,
-        }).filter((d: any) => d.isDirectory());
+        }).filter((d) => d.isDirectory());
         for (const vol of volumes) {
           const volPath = join(paths.manuscriptDir, vol.name);
-          stats.chapters += readdirSync(volPath).filter((f: string) =>
+          stats.chapters += readdirSync(volPath).filter((f) =>
             f.endsWith(".md")
           ).length;
         }
@@ -239,7 +268,7 @@ export class LightweightAI {
           return `错误: 目录不存在 ${input.path}`;
         }
         try {
-          const files = require("node:fs").readdirSync(dirPath);
+          const files = readdirSync(dirPath);
           return files.join("\n");
         } catch (e: any) {
           return `错误: 列出文件失败 - ${e.message}`;
@@ -249,6 +278,113 @@ export class LightweightAI {
       default:
         return `错误: 未知工具 ${toolName}`;
     }
+  }
+
+  /**
+   * 保存会话历史
+   */
+  saveSession(): void {
+    const session: SessionRecord = {
+      id: this.sessionId,
+      timestamp: new Date().toISOString(),
+      model: this.model,
+      messages: this.conversationHistory,
+      summary: this.generateSummary(),
+    };
+
+    const filePath = join(this.historyDir, `${this.sessionId}.json`);
+    writeFileSync(filePath, JSON.stringify(session, null, 2), "utf-8");
+  }
+
+  /**
+   * 加载会话历史
+   */
+  loadSession(sessionId: string): boolean {
+    const filePath = join(this.historyDir, `${sessionId}.json`);
+    if (!existsSync(filePath)) {
+      return false;
+    }
+
+    try {
+      const data = readFileSync(filePath, "utf-8");
+      const session: SessionRecord = JSON.parse(data);
+      this.sessionId = session.id;
+      this.conversationHistory = session.messages;
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * 列出所有会话
+   */
+  listSessions(): SessionRecord[] {
+    if (!existsSync(this.historyDir)) {
+      return [];
+    }
+
+    const files = readdirSync(this.historyDir).filter((f) =>
+      f.endsWith(".json")
+    );
+    const sessions: SessionRecord[] = [];
+
+    for (const file of files) {
+      try {
+        const data = readFileSync(join(this.historyDir, file), "utf-8");
+        const session: SessionRecord = JSON.parse(data);
+        sessions.push(session);
+      } catch (e) {
+        // 忽略损坏的文件
+      }
+    }
+
+    // 按时间戳排序（最新的在前）
+    sessions.sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+    return sessions;
+  }
+
+  /**
+   * 删除会话
+   */
+  deleteSession(sessionId: string): boolean {
+    const filePath = join(this.historyDir, `${sessionId}.json`);
+    if (!existsSync(filePath)) {
+      return false;
+    }
+
+    try {
+      require("node:fs").unlinkSync(filePath);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /**
+   * 生成会话摘要
+   */
+  private generateSummary(): string {
+    if (this.conversationHistory.length === 0) {
+      return "空会话";
+    }
+
+    // 提取前几条用户消息作为摘要
+    const userMessages = this.conversationHistory
+      .filter((msg) => msg.role === "user")
+      .slice(0, 3)
+      .map((msg) => {
+        if (typeof msg.content === "string") {
+          return msg.content.substring(0, 50);
+        }
+        return "[复杂内容]";
+      });
+
+    return userMessages.join(" | ") || "无摘要";
   }
 
   /**
@@ -319,6 +455,9 @@ export class LightweightAI {
         content: assistantMessage,
       });
 
+      // 自动保存会话
+      this.saveSession();
+
       return assistantMessage;
     } catch (error: any) {
       throw new Error(`AI 请求失败: ${error.message}`);
@@ -330,6 +469,7 @@ export class LightweightAI {
    */
   clearHistory(): void {
     this.conversationHistory = [];
+    this.saveSession();
   }
 
   /**
@@ -338,6 +478,97 @@ export class LightweightAI {
   getHistory(): Anthropic.MessageParam[] {
     return [...this.conversationHistory];
   }
+
+  /**
+   * 获取会话 ID
+   */
+  getSessionId(): string {
+    return this.sessionId;
+  }
+
+  /**
+   * 获取历史目录
+   */
+  getHistoryDir(): string {
+    return this.historyDir;
+  }
+}
+
+/**
+ * 显示帮助信息
+ */
+function showHelp(): void {
+  console.log(`
+可用命令:
+  help, h          - 显示此帮助信息
+  history          - 显示当前会话的对话历史
+  sessions         - 列出所有会话
+  load <id>        - 加载指定会话
+  save             - 保存当前会话
+  delete <id>      - 删除指定会话
+  clear            - 清空当前对话历史
+  exit, quit       - 退出程序
+`);
+}
+
+/**
+ * 显示会话列表
+ */
+function showSessions(ai: LightweightAI): void {
+  const sessions = ai.listSessions();
+  if (sessions.length === 0) {
+    console.log("没有历史会话");
+    return;
+  }
+
+  console.log("\n历史会话:");
+  console.log("-".repeat(60));
+  for (const session of sessions) {
+    const date = new Date(session.timestamp).toLocaleString("zh-CN");
+    console.log(`ID: ${session.id}`);
+    console.log(`时间: ${date}`);
+    console.log(`模型: ${session.model}`);
+    console.log(`摘要: ${session.summary || "无"}`);
+    console.log("-".repeat(60));
+  }
+}
+
+/**
+ * 显示对话历史
+ */
+function showHistory(ai: LightweightAI): void {
+  const history = ai.getHistory();
+  if (history.length === 0) {
+    console.log("对话历史为空");
+    return;
+  }
+
+  console.log("\n对话历史:");
+  console.log("=".repeat(60));
+  for (const msg of history) {
+    const role = msg.role === "user" ? "你" : "AI";
+    let content = "";
+
+    if (typeof msg.content === "string") {
+      content = msg.content;
+    } else if (Array.isArray(msg.content)) {
+      // 处理复杂内容（工具调用等）
+      for (const block of msg.content) {
+        if (block.type === "text") {
+          content += block.text;
+        } else if (block.type === "tool_use") {
+          content += `[工具调用: ${block.name}]`;
+        } else if (block.type === "tool_result") {
+          content += `[工具结果]`;
+        }
+      }
+    }
+
+    if (content) {
+      console.log(`${role}: ${content.substring(0, 200)}${content.length > 200 ? "..." : ""}`);
+    }
+  }
+  console.log("=".repeat(60));
 }
 
 /**
@@ -346,17 +577,23 @@ export class LightweightAI {
 export function registerAICommand(program: any) {
   program
     .command("ai")
-    .description("启动轻量级 AI 助手")
+    .description("启动轻量级 AI 助手（支持会话历史）")
     .option("--model <model>", "AI 模型", "claude-3-5-sonnet-latest")
     .option("--max-tokens <tokens>", "最大 token 数", "1024")
     .option("--system-prompt <prompt>", "自定义系统提示")
     .option("--message <message>", "单条消息模式（不进入交互）")
+    .option("--session <id>", "加载指定会话")
+    .option("--list-sessions", "列出所有会话")
+    .option("--delete-session <id>", "删除指定会话")
     .action(
       async (opts: {
         model?: string;
         maxTokens?: string;
         systemPrompt?: string;
         message?: string;
+        session?: string;
+        listSessions?: boolean;
+        deleteSession?: string;
       }) => {
         // 检查 API key
         if (!process.env.ANTHROPIC_API_KEY) {
@@ -370,6 +607,32 @@ export function registerAICommand(program: any) {
           maxTokens: opts.maxTokens ? parseInt(opts.maxTokens) : undefined,
           systemPrompt: opts.systemPrompt,
         });
+
+        // 列出会话
+        if (opts.listSessions) {
+          showSessions(ai);
+          return;
+        }
+
+        // 删除会话
+        if (opts.deleteSession) {
+          if (ai.deleteSession(opts.deleteSession)) {
+            console.log(`会话 ${opts.deleteSession} 已删除`);
+          } else {
+            console.error(`会话 ${opts.deleteSession} 不存在`);
+          }
+          return;
+        }
+
+        // 加载会话
+        if (opts.session) {
+          if (ai.loadSession(opts.session)) {
+            console.log(`已加载会话: ${opts.session}`);
+          } else {
+            console.error(`会话 ${opts.session} 不存在`);
+            process.exit(1);
+          }
+        }
 
         // 单条消息模式
         if (opts.message) {
@@ -385,8 +648,8 @@ export function registerAICommand(program: any) {
 
         // 交互模式
         console.log("轻量级 AI 助手已启动");
+        console.log("输入 'help' 查看可用命令");
         console.log("输入 'exit' 或 'quit' 退出");
-        console.log("输入 'clear' 清空对话历史");
         console.log("-".repeat(40));
 
         const rl = createInterface({
@@ -398,15 +661,63 @@ export function registerAICommand(program: any) {
           rl.question("\n你: ", async (input) => {
             const trimmed = input.trim();
 
-            if (["exit", "quit"].includes(trimmed.toLowerCase())) {
-              console.log("再见！");
-              rl.close();
+            // 处理特殊命令
+            switch (trimmed.toLowerCase()) {
+              case "exit":
+              case "quit":
+                console.log("再见！");
+                rl.close();
+                return;
+
+              case "help":
+              case "h":
+                showHelp();
+                prompt();
+                return;
+
+              case "history":
+                showHistory(ai);
+                prompt();
+                return;
+
+              case "sessions":
+                showSessions(ai);
+                prompt();
+                return;
+
+              case "save":
+                ai.saveSession();
+                console.log(`会话已保存: ${ai.getSessionId()}`);
+                prompt();
+                return;
+
+              case "clear":
+                ai.clearHistory();
+                console.log("对话历史已清空");
+                prompt();
+                return;
+            }
+
+            // 处理 load 命令
+            if (trimmed.toLowerCase().startsWith("load ")) {
+              const sessionId = trimmed.substring(5).trim();
+              if (ai.loadSession(sessionId)) {
+                console.log(`已加载会话: ${sessionId}`);
+              } else {
+                console.error(`会话 ${sessionId} 不存在`);
+              }
+              prompt();
               return;
             }
 
-            if (trimmed.toLowerCase() === "clear") {
-              ai.clearHistory();
-              console.log("对话历史已清空");
+            // 处理 delete 命令
+            if (trimmed.toLowerCase().startsWith("delete ")) {
+              const sessionId = trimmed.substring(7).trim();
+              if (ai.deleteSession(sessionId)) {
+                console.log(`会话 ${sessionId} 已删除`);
+              } else {
+                console.error(`会话 ${sessionId} 不存在`);
+              }
               prompt();
               return;
             }
